@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "570106348749",
+    "firebase_url": "https://it-shop-d827d.firebaseio.com",
+    "project_id": "it-shop-d827d",
+    "storage_bucket": "it-shop-d827d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:570106348749:android:303034be952f456c131584",
+        "android_client_info": {
+          "package_name": "com.example.itshop"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "570106348749-2pp9mljoa9ugok5q57qbqcjkaaofoshu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKs9q3-2PhoWOpQ1whDtktXGJ7uf9EOIY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "570106348749-2pp9mljoa9ugok5q57qbqcjkaaofoshu.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
