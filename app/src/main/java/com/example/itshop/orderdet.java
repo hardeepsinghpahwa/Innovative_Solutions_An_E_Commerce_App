@@ -2,7 +2,7 @@ package com.example.itshop;
 
 public class orderdet {
 
-    String name,address,delievry,discount,phone,price,total,userid,itemid,status,email,timestamp,orderid;
+    String name,address,delivery,discount,phone,price,total,userid,itemid,status,email,timestamp,orderid;
 
     public String getItemid() {
         return itemid;
@@ -68,12 +68,12 @@ public class orderdet {
         this.address = address;
     }
 
-    public String getDelievry() {
-        return delievry;
+    public String getDelivery() {
+        return delivery;
     }
 
-    public void setDelievry(String delievry) {
-        this.delievry = delievry;
+    public void setDelivery(String delivery) {
+        this.delivery = delivery;
     }
 
     public String getDiscount() {

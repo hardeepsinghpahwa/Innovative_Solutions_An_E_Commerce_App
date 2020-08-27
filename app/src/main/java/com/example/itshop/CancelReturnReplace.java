@@ -1,10 +1,12 @@
 package com.example.itshop;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.DialogInterface;
 import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.itshop.Notifications.SendNoti;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
@@ -70,6 +73,7 @@ public class CancelReturnReplace extends AppCompatActivity {
             title.setText("Cancel Order");
             recyclerView.setVisibility(View.GONE);
             action.setText("Cancel Order");
+            circularProgressBar.setVisibility(View.GONE);
 
         } else if (type.equals("return")) {
             title.setText("Return Item(s)");
@@ -86,272 +90,369 @@ public class CancelReturnReplace extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
+                if (snapshot.exists()) {
+                    ids.clear();
+                    quans.clear();
+                    items.clear();
+                    if (type.equals("return")) {
+                        action.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
 
-                if (type.equals("return")) {
-                    action.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            count = 0;
-                            while (count < ids.size()) {
+                                AlertDialog.Builder builder = new AlertDialog.Builder(CancelReturnReplace.this);
+                                builder.setTitle("Send request for return?");
+                                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                    }
+                                }).setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        count = 0;
+                                        while (count < ids.size()) {
 
-                                View v = recyclerView.getLayoutManager().findViewByPosition(count);
+                                            View v = recyclerView.getLayoutManager().findViewByPosition(count);
 
-                                CheckBox checkBox;
-                                final TextView spinner;
-                                checkBox = v.findViewById(R.id.checkBox);
-                                spinner = v.findViewById(R.id.spinner);
+                                            CheckBox checkBox;
+                                            final TextView spinner;
+                                            checkBox = v.findViewById(R.id.checkBox);
+                                            spinner = v.findViewById(R.id.spinner);
 
-                                if (checkBox.isChecked()) {
+                                            if (checkBox.isChecked()) {
 
-                                    final int finalI = count;
-                                    count++;
+                                                final int finalI = count;
+                                                count++;
 
-                                    FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("items").addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                                FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("items").addListenerForSingleValueEvent(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                            items.clear();
+                                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
 
-                                                if (dataSnapshot.child("itemid").getValue(String.class).equals(ids.get(finalI))) {
-                                                    items.add(new returnitem(ids.get(finalI), spinner.getText().toString(), dataSnapshot.child("price").getValue(String.class), dataSnapshot.child("discount").getValue(String.class)));
-                                                }
+                                                                if (dataSnapshot.child("itemid").getValue(String.class).equals(ids.get(finalI))) {
+                                                                    items.add(new returnitem(ids.get(finalI), spinner.getText().toString(), dataSnapshot.child("price").getValue(String.class), dataSnapshot.child("discount").getValue(String.class)));
+                                                                }
 
-                                            }
-
-                                            if (finalI == ids.size() - 1) {
-                                                if (items.size() == 0) {
-                                                    Toast.makeText(CancelReturnReplace.this, "Select An Item First", Toast.LENGTH_SHORT).show();
-                                                } else if (reason.getText().toString().equals("")) {
-                                                    Toast.makeText(CancelReturnReplace.this, "Enter A Reason First", Toast.LENGTH_SHORT).show();
-                                                } else {
-                                                    FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("return").addListenerForSingleValueEvent(new ValueEventListener() {
-                                                        @Override
-                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                            snapshot.getRef().child("reason").setValue(reason.getText().toString());
-                                                            for (int l = 0; l < items.size(); l++) {
-                                                                final Map map = new HashMap();
-                                                                map.put("itemid", items.get(l).getId());
-                                                                map.put("price", items.get(l).getPrice());
-                                                                map.put("quantity", items.get(l).getQuantity());
-                                                                map.put("discount", items.get(l).getDiscount());
-
-                                                                final int finalL = l;
-                                                                snapshot.getRef().child("items").child(UUID.randomUUID().toString()).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                    @Override
-                                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                                        if (task.isSuccessful() && finalL == items.size() - 1) {
-                                                                            Map map1 = new HashMap();
-                                                                            map1.put("status", "Return Requested");
-                                                                            FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).updateChildren(map1).addOnCompleteListener(new OnCompleteListener() {
-                                                                                @Override
-                                                                                public void onComplete(@NonNull Task task) {
-                                                                                    if (task.isSuccessful()) {
-                                                                                        Map map2=new HashMap();
-                                                                                        map2.put("text","Return Requested");
-                                                                                        map2.put("timestamp", ServerValue.TIMESTAMP);
-                                                                                        FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("tracking").child(UUID.randomUUID().toString()).setValue(map2);
-                                                                                        Toast.makeText(CancelReturnReplace.this, "Return Request Sent.", Toast.LENGTH_SHORT).show();
-                                                                                    } else {
-                                                                                        Toast.makeText(CancelReturnReplace.this, "Some Error Occurred", Toast.LENGTH_SHORT).show();
-                                                                                    }
-                                                                                }
-                                                                            });
-                                                                        }
-                                                                    }
-                                                                });
                                                             }
-                                                        }
 
-                                                        @Override
-                                                        public void onCancelled(@NonNull DatabaseError error) {
+                                                            if (finalI == ids.size() - 1) {
+                                                                if (items.size() == 0) {
+                                                                    Toast.makeText(CancelReturnReplace.this, "Select An Item First", Toast.LENGTH_SHORT).show();
+                                                                } else if (reason.getText().toString().equals("")) {
+                                                                    Toast.makeText(CancelReturnReplace.this, "Enter A Reason First", Toast.LENGTH_SHORT).show();
+                                                                } else {
+                                                                    FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("return").addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                        @Override
+                                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                                                        }
-                                                    });
+                                                                            snapshot.getRef().child("reason").setValue(reason.getText().toString());
+                                                                            for (int l = 0; l < items.size(); l++) {
+                                                                                final Map map = new HashMap();
+                                                                                map.put("itemid", items.get(l).getId());
+                                                                                map.put("price", items.get(l).getPrice());
+                                                                                map.put("quantity", items.get(l).getQuantity());
+                                                                                map.put("discount", items.get(l).getDiscount());
+
+                                                                                final int finalL = l;
+                                                                                snapshot.getRef().child("items").child(UUID.randomUUID().toString()).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                                    @Override
+                                                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                                                        if (task.isSuccessful() && finalL == items.size() - 1) {
+                                                                                            Map map1 = new HashMap();
+                                                                                            map1.put("status", "Return Requested");
+                                                                                            FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).updateChildren(map1).addOnCompleteListener(new OnCompleteListener() {
+                                                                                                @Override
+                                                                                                public void onComplete(@NonNull Task task) {
+                                                                                                    if (task.isSuccessful()) {
+                                                                                                        Map map2 = new HashMap();
+                                                                                                        map2.put("text", "Return Requested");
+                                                                                                        map2.put("timestamp", ServerValue.TIMESTAMP);
+                                                                                                        finish();
+                                                                                                        FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("tracking").child(UUID.randomUUID().toString()).setValue(map2);
+                                                                                                        Toast.makeText(CancelReturnReplace.this, "Return Request Sent.", Toast.LENGTH_SHORT).show();
+                                                                                                        SendNoti sendNoti=new SendNoti();
+                                                                                                        sendNoti.sendNotification(CancelReturnReplace.this,"pj2RDmhgXEVjn3zrMaYYJ25vFvk1","You Have A Item Return Request","Please Check Out the item return request and update the user time by time");
+                                                                                                    } else {
+                                                                                                        Toast.makeText(CancelReturnReplace.this, "Some Error Occurred", Toast.LENGTH_SHORT).show();
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        }
+
+                                                                        @Override
+                                                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                                                        }
+                                                                    });
+                                                                }
+                                                            }
+                                                    }
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                                    }
+                                                });
+                                            } else {
+
+                                                if (count == ids.size() - 1) {
+                                                    if (items.size() == 0) {
+                                                        Toast.makeText(CancelReturnReplace.this, "Select An Item First", Toast.LENGTH_SHORT).show();
+                                                    }
                                                 }
+                                                count++;
                                             }
 
+                                        }
+
+                                    }
+                                });
+
+                                builder.show();
+                            }
+                        });
+                    } else if (type.equals("replace")) {
+                        action.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+
+                                AlertDialog.Builder builder = new AlertDialog.Builder(CancelReturnReplace.this);
+                                builder.setTitle("Send request for replacement?");
+                                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                    }
+                                }).setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        count = 0;
+                                        while (count < ids.size()) {
+
+                                            View v = recyclerView.getLayoutManager().findViewByPosition(count);
+
+                                            CheckBox checkBox;
+                                            final TextView spinner;
+                                            checkBox = v.findViewById(R.id.checkBox);
+                                            spinner = v.findViewById(R.id.spinner);
+
+                                            if (checkBox.isChecked()) {
+
+                                                Log.i("check", "checked");
+
+                                                final int finalI = count;
+                                                count++;
+
+                                                FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("items").addListenerForSingleValueEvent(new ValueEventListener() {
+                                                    @Override
+                                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                        if(snapshot.exists()) {
+
+                                                            Log.i("count", String.valueOf(count));
+                                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+
+                                                                if (dataSnapshot.child("itemid").getValue(String.class).equals(ids.get(finalI))) {
+                                                                    items.add(new returnitem(ids.get(finalI), spinner.getText().toString(), dataSnapshot.child("price").getValue(String.class), dataSnapshot.child("discount").getValue(String.class)));
+                                                                }
+
+                                                            }
+
+                                                            if (finalI == ids.size() - 1) {
+                                                                if (items.size() == 0) {
+                                                                    Toast.makeText(CancelReturnReplace.this, "Select An Item First", Toast.LENGTH_SHORT).show();
+                                                                } else if (reason.getText().toString().equals("")) {
+                                                                    Toast.makeText(CancelReturnReplace.this, "Enter A Reason First", Toast.LENGTH_SHORT).show();
+                                                                } else {
+                                                                    FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("replace").addListenerForSingleValueEvent(new ValueEventListener() {
+                                                                        @Override
+                                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+
+                                                                                snapshot.getRef().child("reason").setValue(reason.getText().toString());
+                                                                            for (int l = 0; l < items.size(); l++) {
+                                                                                Map map = new HashMap();
+                                                                                map.put("itemid", items.get(l).getId());
+                                                                                map.put("price", items.get(l).getPrice());
+                                                                                map.put("quantity", items.get(l).getQuantity());
+                                                                                map.put("discount", items.get(l).getDiscount());
+
+                                                                                final int finalL = l;
+                                                                                snapshot.getRef().child("items").child(UUID.randomUUID().toString()).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                                    @Override
+                                                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                                                        if (task.isSuccessful() && finalL == items.size() - 1) {
+                                                                                            Map map1 = new HashMap();
+                                                                                            map1.put("status", "Replacement Requested");
+                                                                                            FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).updateChildren(map1).addOnCompleteListener(new OnCompleteListener() {
+                                                                                                @Override
+                                                                                                public void onComplete(@NonNull Task task) {
+                                                                                                    if (task.isSuccessful()) {
+                                                                                                        Map map2 = new HashMap();
+                                                                                                        map2.put("text", "Replacement Requested");
+                                                                                                        map2.put("timestamp", ServerValue.TIMESTAMP);
+                                                                                                        finish();
+                                                                                                        FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("tracking").child(UUID.randomUUID().toString()).setValue(map2);
+                                                                                                        Toast.makeText(CancelReturnReplace.this, "Replacement Request Sent.", Toast.LENGTH_SHORT).show();
+                                                                                                        SendNoti sendNoti=new SendNoti();
+                                                                                                        sendNoti.sendNotification(CancelReturnReplace.this,"pj2RDmhgXEVjn3zrMaYYJ25vFvk1","You Have A Item Replacement Request","Please Check Out the item replacement request and update the user time by time");
+
+                                                                                                    } else {
+                                                                                                        Toast.makeText(CancelReturnReplace.this, "Some Error Occurred", Toast.LENGTH_SHORT).show();
+                                                                                                    }
+                                                                                                }
+                                                                                            });
+                                                                                        }
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        }
+
+                                                                        @Override
+                                                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                                                        }
+                                                                    });
+                                                                }
+                                                            }
+
+                                                        }
+                                                    }
+
+                                                    @Override
+                                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                                    }
+                                                });
+                                            } else {
+
+                                                if (count == ids.size() - 1) {
+                                                    if (items.size() == 0) {
+                                                        Toast.makeText(CancelReturnReplace.this, "Select An Item First", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                                count++;
+                                            }
 
                                         }
 
-                                        @Override
-                                        public void onCancelled(@NonNull DatabaseError error) {
+                                    }
+                                });
 
-                                        }
-                                    });
-                                } else {
+                                builder.show();
+                            }
+                        });
+                    } else if (type.equals("cancel")) {
+                        action.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
 
-                                    if (count == ids.size() - 1) {
-                                        if (items.size() == 0) {
-                                            Toast.makeText(CancelReturnReplace.this, "Select An Item First", Toast.LENGTH_SHORT).show();
+                                AlertDialog.Builder builder = new AlertDialog.Builder(CancelReturnReplace.this);
+                                builder.setTitle("Cancel Order?");
+                                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        dialogInterface.dismiss();
+                                    }
+                                }).setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+
+                                        if (reason.getText().toString().equals("")) {
+                                            Toast.makeText(CancelReturnReplace.this, "Enter some reason first", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Map map1 = new HashMap();
+                                            map1.put("status", "Cancelled");
+                                            FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).updateChildren(map1).addOnCompleteListener(new OnCompleteListener() {
+                                                @Override
+                                                public void onComplete(@NonNull Task task) {
+                                                    if (task.isSuccessful()) {
+                                                        Map map2 = new HashMap();
+                                                        map2.put("text", "Cancelled");
+                                                        map2.put("timestamp", ServerValue.TIMESTAMP);
+                                                        FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("tracking").child(UUID.randomUUID().toString()).setValue(map2);
+                                                        Toast.makeText(CancelReturnReplace.this, "Order Cancelled. Refund Will be made soon.", Toast.LENGTH_SHORT).show();
+                                                        SendNoti sendNoti=new SendNoti();
+                                                        sendNoti.sendNotification(CancelReturnReplace.this,"pj2RDmhgXEVjn3zrMaYYJ25vFvk1","You Have A Order Cancellation Request","Please Check Out the order cancellation request and update the user time by time");
+
+                                                        finish();
+                                                    } else {
+                                                        Toast.makeText(CancelReturnReplace.this, "Some Error Occurred", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                            });
                                         }
                                     }
-                                    count++;
-                                }
+                                });
+
+                                builder.show();
 
                             }
+                        });
+                    }
 
+                    snapshot.getRef().child("items").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (snapshot.exists()) {
+                                ids.clear();
+                                quans.clear();
+                                for (final DataSnapshot dataSnapshot : snapshot.getChildren()) {
 
+                                    if (type.equals("return")) {
+                                        FirebaseDatabase.getInstance().getReference().child("Items").child(dataSnapshot.child("itemid").getValue(String.class)).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                if (snapshot.exists()) {
+
+                                                    if (snapshot.child("returnable").getValue(String.class) != null || !snapshot.child("returnable").getValue(String.class).equals("0")) {
+                                                        ids.add(dataSnapshot.child("itemid").getValue(String.class));
+                                                        quans.add(dataSnapshot.child("quantity").getValue(String.class));
+                                                        recyclerView.getAdapter().notifyDataSetChanged();
+                                                    }
+                                                }
+                                            }
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+
+                                            }
+                                        });
+
+                                    } else if (type.equals("replace")) {
+                                        ids.clear();
+                                        quans.clear();
+                                        FirebaseDatabase.getInstance().getReference().child("Items").child(dataSnapshot.child("itemid").getValue(String.class)).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                if (snapshot.exists()) {
+
+                                                    if (snapshot.child("replacement").getValue(String.class) != null || !snapshot.child("replacement").getValue(String.class).equals("0")) {
+                                                        ids.add(dataSnapshot.child("itemid").getValue(String.class));
+                                                        quans.add(dataSnapshot.child("quantity").getValue(String.class));
+                                                        recyclerView.getAdapter().notifyDataSetChanged();
+                                                    }
+                                                }
+                                            }
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+
+                                            }
+                                        });
+
+                                    }
+                                }
+                            }
                         }
-                    });
-                } else if (type.equals("replace")) {
-                    action.setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onClick(View view) {
-                            count = 0;
-                            while (count < ids.size()) {
-
-                                View v = recyclerView.getLayoutManager().findViewByPosition(count);
-
-                                CheckBox checkBox;
-                                final TextView spinner;
-                                checkBox = v.findViewById(R.id.checkBox);
-                                spinner = v.findViewById(R.id.spinner);
-
-                                if (checkBox.isChecked()) {
-
-                                    Log.i("check", "checked");
-
-                                    final int finalI = count;
-                                    count++;
-
-                                    FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("items").addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                            Log.i("count", String.valueOf(count));
-                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-
-                                                if (dataSnapshot.child("itemid").getValue(String.class).equals(ids.get(finalI))) {
-                                                    items.add(new returnitem(ids.get(finalI), spinner.getText().toString(), dataSnapshot.child("price").getValue(String.class), dataSnapshot.child("discount").getValue(String.class)));
-                                                }
-
-                                            }
-
-                                            if (finalI == ids.size() - 1) {
-                                                if (items.size() == 0) {
-                                                    Toast.makeText(CancelReturnReplace.this, "Select An Item First", Toast.LENGTH_SHORT).show();
-                                                } else if (reason.getText().toString().equals("")) {
-                                                    Toast.makeText(CancelReturnReplace.this, "Enter A Reason First", Toast.LENGTH_SHORT).show();
-                                                } else {
-                                                    FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("replace").addListenerForSingleValueEvent(new ValueEventListener() {
-                                                        @Override
-                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                            snapshot.getRef().child("reason").setValue(reason.getText().toString());
-                                                            for (int l = 0; l < items.size(); l++) {
-                                                                Map map = new HashMap();
-                                                                map.put("itemid", items.get(l).getId());
-                                                                map.put("price", items.get(l).getPrice());
-                                                                map.put("quantity", items.get(l).getQuantity());
-                                                                map.put("discount", items.get(l).getDiscount());
-
-                                                                final int finalL = l;
-                                                                snapshot.getRef().child("items").child(UUID.randomUUID().toString()).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                    @Override
-                                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                                        if (task.isSuccessful() && finalL == items.size() - 1) {
-                                                                            Map map1 = new HashMap();
-                                                                            map1.put("status", "Replacement Requested");
-                                                                            FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).updateChildren(map1).addOnCompleteListener(new OnCompleteListener() {
-                                                                                @Override
-                                                                                public void onComplete(@NonNull Task task) {
-                                                                                    if (task.isSuccessful()) {
-                                                                                        Map map2=new HashMap();
-                                                                                        map2.put("text","Replacement Requested");
-                                                                                        map2.put("timestamp", ServerValue.TIMESTAMP);
-                                                                                        FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("tracking").child(UUID.randomUUID().toString()).setValue(map2);
-                                                                                        Toast.makeText(CancelReturnReplace.this, "Replacement Request Sent.", Toast.LENGTH_SHORT).show();
-                                                                                    } else {
-                                                                                        Toast.makeText(CancelReturnReplace.this, "Some Error Occurred", Toast.LENGTH_SHORT).show();
-                                                                                    }
-                                                                                }
-                                                                            });
-                                                                        }
-                                                                    }
-                                                                });
-                                                            }
-                                                        }
-
-                                                        @Override
-                                                        public void onCancelled(@NonNull DatabaseError error) {
-
-                                                        }
-                                                    });
-                                                }
-                                            }
-
-
-                                        }
-
-                                        @Override
-                                        public void onCancelled(@NonNull DatabaseError error) {
-
-                                        }
-                                    });
-                                } else {
-
-                                    if (count == ids.size() - 1) {
-                                        if (items.size() == 0) {
-                                            Toast.makeText(CancelReturnReplace.this, "Select An Item First", Toast.LENGTH_SHORT).show();
-                                        }
-                                    }
-                                    count++;
-                                }
-
-                            }
-
+                        public void onCancelled(@NonNull DatabaseError error) {
 
                         }
                     });
                 }
-
-                snapshot.getRef().child("items").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for (final DataSnapshot dataSnapshot : snapshot.getChildren()) {
-
-                            if (type.equals("return")) {
-                                FirebaseDatabase.getInstance().getReference().child("Items").child(dataSnapshot.child("itemid").getValue(String.class)).addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        if (snapshot.child("returnable").getValue(String.class) != null || !snapshot.child("returnable").getValue(String.class).equals("0")) {
-                                            ids.add(dataSnapshot.child("itemid").getValue(String.class));
-                                            quans.add(dataSnapshot.child("quantity").getValue(String.class));
-                                            recyclerView.getAdapter().notifyDataSetChanged();
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-
-                                    }
-                                });
-
-                            } else if (type.equals("replace")) {
-                                FirebaseDatabase.getInstance().getReference().child("Items").child(dataSnapshot.child("itemid").getValue(String.class)).addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        if (snapshot.child("replacement").getValue(String.class) != null || !snapshot.child("replacement").getValue(String.class).equals("0")) {
-                                            ids.add(dataSnapshot.child("itemid").getValue(String.class));
-                                            quans.add(dataSnapshot.child("quantity").getValue(String.class));
-                                            recyclerView.getAdapter().notifyDataSetChanged();
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-
-                                    }
-                                });
-
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 

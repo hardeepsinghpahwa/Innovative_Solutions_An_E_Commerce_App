@@ -123,9 +123,12 @@ public class ItemDetail extends AppCompatActivity {
         FirebaseDatabase.getInstance().getReference().child("Items").child(itemid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.child("stock").getValue(String.class).equals("0")) {
+                if(snapshot.exists())
+                {
+
+                    if (!snapshot.child("stock").getValue(String.class).equals("0")) {
                     constraintLayout.setVisibility(View.VISIBLE);
-                }
+                }}
             }
 
             @Override
@@ -178,7 +181,10 @@ public class ItemDetail extends AppCompatActivity {
                 FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        if(snapshot.exists())
+                        {
+
+                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                             if (dataSnapshot.child("itemid").getValue(String.class).equals(itemid)) {
                                 i++;
                                 Toast.makeText(ItemDetail.this, "Item Already in Cart", Toast.LENGTH_SHORT).show();
@@ -203,7 +209,7 @@ public class ItemDetail extends AppCompatActivity {
                                 }
                             });
                         }
-                    }
+                    }}
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
@@ -245,7 +251,9 @@ public class ItemDetail extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        if(snapshot.exists())
+                        {
+                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                             if (dataSnapshot.child("itemid").getValue(String.class).equals(itemid)) {
                                 dataSnapshot.getRef().removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
@@ -258,7 +266,7 @@ public class ItemDetail extends AppCompatActivity {
                                     }
                                 });
                             }
-                        }
+                        }}
                     }
 
                     @Override
@@ -331,18 +339,21 @@ public class ItemDetail extends AppCompatActivity {
                     snapshot.child("images").getRef().addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            SliderItems = new ArrayList<>();
 
-                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                SliderItems.add(dataSnapshot.child("image").getValue(String.class));
+                            if(snapshot.exists()) {
+
+                                SliderItems = new ArrayList<>();
+
+                                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                    SliderItems.add(dataSnapshot.child("image").getValue(String.class));
+                                }
+
+                                SliderAdapter adapter = new SliderAdapter(ItemDetail.this, SliderItems);
+
+                                sliderView.setSliderAdapter(adapter);
+                                sliderView.setSliderTransformAnimation(SliderAnimations.SIMPLETRANSFORMATION);
+                                sliderView.setVisibility(View.VISIBLE);
                             }
-
-                            SliderAdapter adapter = new SliderAdapter(ItemDetail.this, SliderItems);
-
-                            sliderView.setSliderAdapter(adapter);
-                            sliderView.setSliderTransformAnimation(SliderAnimations.SIMPLETRANSFORMATION);
-                            sliderView.setVisibility(View.VISIBLE);
-
                         }
 
                         @Override

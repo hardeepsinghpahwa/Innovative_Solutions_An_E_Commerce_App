@@ -97,12 +97,14 @@ public class SetupProfile extends AppCompatActivity {
             FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    Glide.with(SetupProfile.this).load(snapshot.child("profilepic").getValue(String.class)).into(profilepic);
-                    name.setText(snapshot.child("name").getValue(String.class));
-                    email.setText(snapshot.child("email").getValue(String.class));
-                    gender.setText(snapshot.child("gender").getValue(String.class));
-                }
+                    if (snapshot.exists()) {
 
+                        Glide.with(SetupProfile.this).load(snapshot.child("profilepic").getValue(String.class)).into(profilepic);
+                        name.setText(snapshot.child("name").getValue(String.class));
+                        email.setText(snapshot.child("email").getValue(String.class));
+                        gender.setText(snapshot.child("gender").getValue(String.class));
+                    }
+                }
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
 

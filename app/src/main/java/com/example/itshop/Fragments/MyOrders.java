@@ -123,26 +123,107 @@ public class MyOrders extends AppCompatActivity {
                 firebaseRecyclerAdapter.getRef(position).child("items").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.getChildrenCount() == 1) {
-                            holder.num.setText("(" + snapshot.getChildrenCount() + " Product)");
-                        } else {
-                            holder.num.setText("(" + snapshot.getChildrenCount() + " Products)");
-                        }
+                        if (snapshot.exists()) {
+                            if (snapshot.getChildrenCount() == 1) {
+                                holder.num.setText("(" + snapshot.getChildrenCount() + " Product)");
+                            } else {
+                                holder.num.setText("(" + snapshot.getChildrenCount() + " Products)");
+                            }
 
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            FirebaseDatabase.getInstance().getReference().child("Items").child(dataSnapshot.child("itemid").getValue(String.class)).addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                    holder.name.setText(snapshot.child("name").getValue(String.class));
+                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                FirebaseDatabase.getInstance().getReference().child("Items").child(dataSnapshot.child("itemid").getValue(String.class)).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        holder.name.setText(snapshot.child("name").getValue(String.class));
 
-                                    snapshot.getRef().child("images").addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        snapshot.getRef().child("images").addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                                Glide.with(MyOrders.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
-                                                break;
+                                                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                                    Glide.with(MyOrders.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
+                                                    break;
+                                                }
                                             }
+
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
+
+                                            }
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+                                break;
+                            }
+
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
+
+                FirebaseDatabase.getInstance().getReference().child("Active Orders").child(firebaseRecyclerAdapter.getRef(position).getKey()).child("tracking").addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                if (dataSnapshot.child("text").getValue(String.class).equals("Delivered")) {
+                                    Log.i("orderid", firebaseRecyclerAdapter.getRef(position).getKey());
+                                    FirebaseDatabase.getInstance().getReference().child("Reviews").addValueEventListener(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull final DataSnapshot snapshot1) {
+
+                                            FirebaseDatabase.getInstance().getReference().child("Active Orders").child(firebaseRecyclerAdapter.getRef(position).getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(@NonNull final DataSnapshot snapshot) {
+
+                                                    if(snapshot.exists())
+                                                    {
+                                                    snapshot.getRef().child("items").addListenerForSingleValueEvent(new ValueEventListener() {
+                                                        @Override
+                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+
+                                                                if (!snapshot1.child(dataSnapshot.child("itemid").getValue(String.class)).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).exists()) {
+                                                                    holder.rate.setVisibility(View.VISIBLE);
+                                                                    holder.rate.setBackgroundColor(getColor(R.color.lightgrey));
+                                                                    holder.rate.setText("Rate");
+                                                                    holder.rate.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                                                                    break;
+                                                                } else {
+                                                                    holder.rate.setVisibility(View.VISIBLE);
+                                                                }
+                                                            }
+
+
+                                                        }
+
+                                                        @Override
+                                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                                        }
+                                                    });
+
+                                                }
+                                                }
+
+                                                @Override
+                                                public void onCancelled(@NonNull DatabaseError error) {
+
+                                                }
+                                            });
+
+
                                         }
 
                                         @Override
@@ -151,15 +232,8 @@ public class MyOrders extends AppCompatActivity {
                                         }
                                     });
                                 }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError error) {
-
-                                }
-                            });
-                            break;
+                            }
                         }
-
                     }
 
                     @Override
@@ -168,66 +242,6 @@ public class MyOrders extends AppCompatActivity {
                     }
                 });
 
-                FirebaseDatabase.getInstance().getReference().child("Reviews").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull final DataSnapshot snapshot1) {
-
-
-                        FirebaseDatabase.getInstance().getReference().child("Active Orders").child(firebaseRecyclerAdapter.getRef(position).getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull final DataSnapshot snapshot) {
-
-                                snapshot.getRef().child("items").addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        ids2.clear();
-
-                                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-
-                                            ids2.add(dataSnapshot.child("itemid").getValue(String.class));
-                                        }
-
-                                        for (int l = 0; l < ids2.size(); l++) {
-                                            if (snapshot1.child(ids2.get(l)).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).exists()) {
-                                                p++;
-                                            }
-                                            Log.i("p", String.valueOf(ids2.get(l)));
-                                            if (l == ids2.size() - 1) {
-                                                Log.i("st",(firebaseRecyclerAdapter.getItem(position).getStatus()));
-                                                if (p == ids2.size()) {
-                                                    holder.rate.setVisibility(View.GONE);
-                                                } else if (model.getStatus().equals("Delievered")) {
-                                                    holder.rate.setVisibility(View.VISIBLE);
-                                                }
-                                                p = 0;
-                                            }
-                                        }
-
-
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-
-                                    }
-                                });
-
-                            }
-
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
-
-                            }
-                        });
-
-
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
 
 
                 if (model.getStatus().equals("Payment Pending")) {
@@ -246,7 +260,7 @@ public class MyOrders extends AppCompatActivity {
 
                     holder.status.setText(model.getStatus());
                     holder.status.setCompoundDrawablesWithIntrinsicBounds(unwrappedDrawable, null, null, null);
-                } else if (model.getStatus().equals("Delievered")) {
+                } else if (model.getStatus().equals("Delivered")) {
                     Drawable unwrappedDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.circle);
                     unwrappedDrawable.setTint(getColor(R.color.green));
 
@@ -281,6 +295,8 @@ public class MyOrders extends AppCompatActivity {
                         FirebaseDatabase.getInstance().getReference().child("Active Orders").child(firebaseRecyclerAdapter.getRef(position).getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull final DataSnapshot snapshot) {
+                                if(snapshot.exists())
+                                {
 
                                 ids.clear();
                                 snapshot.getRef().child("items").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -302,7 +318,7 @@ public class MyOrders extends AppCompatActivity {
                                     }
                                 });
 
-                            }
+                            }}
 
                             @Override
                             public void onCancelled(@NonNull DatabaseError error) {
@@ -421,12 +437,14 @@ public class MyOrders extends AppCompatActivity {
                     FirebaseDatabase.getInstance().getReference().child("Reviews").child(itemids.get(position)).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (snapshot.exists() && snapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).exists()) {
-                                holder.review.setText(snapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("review").getValue(String.class));
-                                holder.rate.setText("Edit Rating");
-                                holder.ratingBar.setEnabled(false);
-                                holder.review.setEnabled(false);
-                                holder.ratingBar.setRating(Float.valueOf(snapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("rating").getValue(String.class)));
+                            if(snapshot.exists()) {
+                                if (snapshot.exists() && snapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).exists()) {
+                                    holder.review.setText(snapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("review").getValue(String.class));
+                                    holder.rate.setText("Edit Rating");
+                                    holder.ratingBar.setEnabled(false);
+                                    holder.review.setEnabled(false);
+                                    holder.ratingBar.setRating(Float.valueOf(snapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("rating").getValue(String.class)));
+                                }
                             }
                         }
 
@@ -440,9 +458,12 @@ public class MyOrders extends AppCompatActivity {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
 
+                            if(snapshot.exists())
+                            {
                             for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                                 Glide.with(MyOrders.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
                                 break;
+                            }
                             }
 
                         }
@@ -497,6 +518,8 @@ public class MyOrders extends AppCompatActivity {
                                                 FirebaseDatabase.getInstance().getReference().child("Reviews").child(itemids.get(position)).addListenerForSingleValueEvent(new ValueEventListener() {
                                                     @Override
                                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                        if(snapshot.exists())
+                                                        {
                                                         for(DataSnapshot dataSnapshot:snapshot.getChildren())
                                                         {
                                                             rat=rat+Double.valueOf(dataSnapshot.child("rating").getValue(String.class));
@@ -521,7 +544,7 @@ public class MyOrders extends AppCompatActivity {
                                                                 }
                                                             }
                                                         });
-                                                    }
+                                                    }}
 
                                                     @Override
                                                     public void onCancelled(@NonNull DatabaseError error) {
@@ -549,15 +572,6 @@ public class MyOrders extends AppCompatActivity {
 
                 }
             });
-
-
-            holder.rate.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                }
-            });
-
         }
 
         @Override

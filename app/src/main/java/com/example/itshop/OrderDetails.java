@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.itshop.Notifications.SendNoti;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -53,16 +54,16 @@ import static maes.tech.intentanim.CustomIntent.customType;
 public class OrderDetails extends AppCompatActivity implements PaymentResultListener {
 
 
-    ArrayList<String> ids, quans, singleitem,discounts,delieveries,prices;
+    ArrayList<String> ids, quans, singleitem, discounts, deliveries, prices;
     String itemid, name, address, phone, total, email = "", phone2 = "", paycost, state, orderid;
-    TextView addresss, price, delievrytotal, discount, totalprice, itemtext, backbutton, pay;
+    TextView addresss, price, deliverytotal, discount, totalprice, itemtext, backbutton, pay;
     int pri;
     double dis, del = 0;
     ImageView back;
     RecyclerView recyclerView;
     CircularProgressBar circularProgressBar;
     ProgressDialog progressDialog;
-    int pa=0;
+    int pa = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,16 +74,19 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
         singleitem = new ArrayList<>();
         state = getIntent().getStringExtra("state");
 
-        discounts=new ArrayList<>();
-        delieveries=new ArrayList<>();
-        prices=new ArrayList<>();
+        discounts = new ArrayList<>();
+        deliveries = new ArrayList<>();
+        prices = new ArrayList<>();
 
 
         FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                email = snapshot.child("email").getValue(String.class);
-                phone2 = snapshot.child("phone").getValue(String.class);
+                if (snapshot.exists()) {
+
+                    email = snapshot.child("email").getValue(String.class);
+                    phone2 = snapshot.child("phone").getValue(String.class);
+                }
             }
 
             @Override
@@ -114,7 +118,7 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
         price = findViewById(R.id.price);
         totalprice = findViewById(R.id.totalprice);
         discount = findViewById(R.id.discount);
-        delievrytotal = findViewById(R.id.delievrytotal);
+        deliverytotal = findViewById(R.id.deliverytotal);
         itemtext = findViewById(R.id.itemstext);
         pay = findViewById(R.id.pay);
         backbutton = findViewById(R.id.backbutton);
@@ -149,66 +153,70 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
             FirebaseDatabase.getInstance().getReference().child("Items").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    pri = 0;
-                    dis = 0;
-                    for (int j = 0; j < ids.size(); j++) {
-                        final int finalJ = j;
-                        snapshot.getRef().child(ids.get(j)).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                                if (state.equals("Himachal Pradesh") || state.equals("Haryana") || state.equals("Punjab") || state.equals("Chandigarh")) {
-                                    del = del + ((Integer.valueOf(snapshot.child("delstate1").getValue(String.class))) * (Integer.valueOf(quans.get(finalJ))));
-                                    delieveries.add(String.valueOf(((Integer.valueOf(snapshot.child("delstate1").getValue(String.class))))));
-
-                                } else if (state.equals("Uttarakhand") || state.equals("Uttar Pradesh") || state.equals("Rajasthan") || state.equals("Delhi")) {
-                                    del = del + ((Integer.valueOf(snapshot.child("delstate2").getValue(String.class))) * (Integer.valueOf(quans.get(finalJ))));
-                                    delieveries.add(String.valueOf(((Integer.valueOf(snapshot.child("delstate2").getValue(String.class))))));
+                        pri = 0;
+                        dis = 0;
+                        for (int j = 0; j < ids.size(); j++) {
+                            final int finalJ = j;
+                            snapshot.getRef().child(ids.get(j)).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if (snapshot.exists()) {
 
 
-                                } else {
-                                    del = del + ((Integer.valueOf(snapshot.child("delstate3").getValue(String.class))) * (Integer.valueOf(quans.get(finalJ))));
-                                    delieveries.add(String.valueOf(((Integer.valueOf(snapshot.child("delstate3").getValue(String.class))))));
+                                        if (state.equals("Himachal Pradesh") || state.equals("Haryana") || state.equals("Punjab") || state.equals("Chandigarh")) {
+                                            del = del + ((Integer.valueOf(snapshot.child("delstate1").getValue(String.class))) * (Integer.valueOf(quans.get(finalJ))));
+                                            deliveries.add(String.valueOf(((Integer.valueOf(snapshot.child("delstate1").getValue(String.class))))));
 
+                                        } else if (state.equals("Uttarakhand") || state.equals("Uttar Pradesh") || state.equals("Rajasthan") || state.equals("Delhi")) {
+                                            del = del + ((Integer.valueOf(snapshot.child("delstate2").getValue(String.class))) * (Integer.valueOf(quans.get(finalJ))));
+                                            deliveries.add(String.valueOf(((Integer.valueOf(snapshot.child("delstate2").getValue(String.class))))));
+
+
+                                        } else {
+                                            del = del + ((Integer.valueOf(snapshot.child("delstate3").getValue(String.class))) * (Integer.valueOf(quans.get(finalJ))));
+                                            deliveries.add(String.valueOf(((Integer.valueOf(snapshot.child("delstate3").getValue(String.class))))));
+
+                                        }
+
+
+                                        pri = pri + ((Integer.valueOf(snapshot.child("price").getValue(String.class)) * (Integer.valueOf(quans.get(finalJ)))));
+
+                                        prices.add(String.valueOf(((Integer.valueOf(snapshot.child("price").getValue(String.class))))));
+
+                                        if (snapshot.child("discount").exists() && !snapshot.child("discount").getValue(String.class).equals("") && !snapshot.child("discount").getValue(String.class).equals("0")) {
+                                            dis = dis + (((((Double.valueOf(snapshot.child("discount").getValue(String.class))) * 0.01) * (Integer.valueOf(snapshot.child("price").getValue(String.class)))) * (Integer.valueOf(quans.get(finalJ)))));
+                                            discounts.add(String.valueOf((((((Double.valueOf(snapshot.child("discount").getValue(String.class))) * 0.01) * (Integer.valueOf(snapshot.child("price").getValue(String.class))))))));
+                                        }
+                                        if (finalJ == ids.size() - 1) {
+                                            Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
+                                            price.setText(format.format(new BigDecimal(String.valueOf(pri))));
+
+                                            discount.setText(format.format(new BigDecimal(String.valueOf(dis))));
+                                            deliverytotal.setText(format.format(new BigDecimal(String.valueOf(del))));
+
+                                            total = String.valueOf(pri + del - dis);
+                                            totalprice.setText(format.format(new BigDecimal(String.valueOf(pri + del - dis))));
+                                            paycost = String.valueOf((Double.valueOf(total)) * 100);
+                                            pay.setEnabled(true);
+
+                                            discounts.add("0");
+
+                                        }
+                                    }
                                 }
 
-
-                                pri = pri + ((Integer.valueOf(snapshot.child("price").getValue(String.class)) * (Integer.valueOf(quans.get(finalJ)))));
-
-                                prices.add(String.valueOf(((Integer.valueOf(snapshot.child("price").getValue(String.class))))));
-
-                                if (snapshot.child("discount").exists() && !snapshot.child("discount").getValue(String.class).equals("") && !snapshot.child("discount").getValue(String.class).equals("0")) {
-                                    dis = dis + (((((Double.valueOf(snapshot.child("discount").getValue(String.class))) * 0.01) * (Integer.valueOf(snapshot.child("price").getValue(String.class)))) * (Integer.valueOf(quans.get(finalJ)))));
-                                    discounts.add(String.valueOf((((((Double.valueOf(snapshot.child("discount").getValue(String.class))) * 0.01) * (Integer.valueOf(snapshot.child("price").getValue(String.class))))))));
-                                }
-                                if (finalJ == ids.size() - 1) {
-                                    Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
-                                    price.setText(format.format(new BigDecimal(String.valueOf(pri))));
-
-                                    discount.setText(format.format(new BigDecimal(String.valueOf(dis))));
-                                    delievrytotal.setText(format.format(new BigDecimal(String.valueOf(del))));
-
-                                    total = String.valueOf(pri + del - dis);
-                                    totalprice.setText(format.format(new BigDecimal(String.valueOf(pri + del - dis))));
-                                    paycost = String.valueOf((Double.valueOf(total)) * 100);
-                                    pay.setEnabled(true);
-
-                                    discounts.add("0");
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
 
                                 }
-                            }
+                            });
+                        }
 
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {
+                        recyclerView.setLayoutManager(new LinearLayoutManager(OrderDetails.this));
+                        recyclerView.setAdapter(new ItemsAdapter(ids, quans));
 
-                            }
-                        });
                     }
-
-                    recyclerView.setLayoutManager(new LinearLayoutManager(OrderDetails.this));
-                    recyclerView.setAdapter(new ItemsAdapter(ids, quans));
-
-                }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
@@ -220,47 +228,48 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
             FirebaseDatabase.getInstance().getReference().child("Items").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    pri = 0;
-                    dis = 0;
-                    snapshot.getRef().child(singleitem.get(0)).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                            if (state.equals("Himachal Pradesh") || state.equals("Haryana") || state.equals("Punjab") || state.equals("Chandigarh")) {
-                                del = del + (Integer.valueOf(snapshot.child("delstate1").getValue(String.class)));
-                            } else if (state.equals("Uttarakhand") || state.equals("Uttar Pradesh") || state.equals("Rajasthan") || state.equals("Delhi")) {
-                                del = del + (Integer.valueOf(snapshot.child("delstate2").getValue(String.class)));
-                            } else {
-                                del = del + (Integer.valueOf(snapshot.child("delstate3").getValue(String.class)));
+                        pri = 0;
+                        dis = 0;
+                        snapshot.getRef().child(singleitem.get(0)).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                if (state.equals("Himachal Pradesh") || state.equals("Haryana") || state.equals("Punjab") || state.equals("Chandigarh")) {
+                                    del = del + (Integer.valueOf(snapshot.child("delstate1").getValue(String.class)));
+                                } else if (state.equals("Uttarakhand") || state.equals("Uttar Pradesh") || state.equals("Rajasthan") || state.equals("Delhi")) {
+                                    del = del + (Integer.valueOf(snapshot.child("delstate2").getValue(String.class)));
+                                } else {
+                                    del = del + (Integer.valueOf(snapshot.child("delstate3").getValue(String.class)));
+                                }
+
+                                pri = pri + Integer.valueOf(snapshot.child("price").getValue(String.class));
+
+                                if (snapshot.child("discount").exists() && !snapshot.child("discount").getValue(String.class).equals("") && !snapshot.child("discount").getValue(String.class).equals("0")) {
+                                    dis = dis + (((Double.valueOf(snapshot.child("discount").getValue(String.class))) * 0.01) * (Integer.valueOf(snapshot.child("price").getValue(String.class))));
+                                }
+                                Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
+                                price.setText(format.format(new BigDecimal(String.valueOf(pri))));
+
+                                discount.setText(format.format(new BigDecimal(String.valueOf(dis))));
+                                deliverytotal.setText(format.format(new BigDecimal(String.valueOf(del))));
+
+                                total = String.valueOf(pri + del - dis);
+                                totalprice.setText(format.format(new BigDecimal(String.valueOf(pri + del - dis))));
+                                paycost = String.valueOf((Double.valueOf(total)) * 100);
+                                pay.setEnabled(true);
+
                             }
 
-                            pri = pri + Integer.valueOf(snapshot.child("price").getValue(String.class));
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
 
-                            if (snapshot.child("discount").exists() && !snapshot.child("discount").getValue(String.class).equals("") && !snapshot.child("discount").getValue(String.class).equals("0")) {
-                                dis = dis + (((Double.valueOf(snapshot.child("discount").getValue(String.class))) * 0.01) * (Integer.valueOf(snapshot.child("price").getValue(String.class))));
                             }
-                            Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
-                            price.setText(format.format(new BigDecimal(String.valueOf(pri))));
-
-                            discount.setText(format.format(new BigDecimal(String.valueOf(dis))));
-                            delievrytotal.setText(format.format(new BigDecimal(String.valueOf(del))));
-
-                            total = String.valueOf(pri + del - dis);
-                            totalprice.setText(format.format(new BigDecimal(String.valueOf(pri + del - dis))));
-                            paycost = String.valueOf((Double.valueOf(total)) * 100);
-                            pay.setEnabled(true);
-
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-
-                        }
-                    });
+                        });
 
 
-                    recyclerView.setLayoutManager(new LinearLayoutManager(OrderDetails.this));
-                    recyclerView.setAdapter(new ItemsAdapter(singleitem, quans));
+                        recyclerView.setLayoutManager(new LinearLayoutManager(OrderDetails.this));
+                        recyclerView.setAdapter(new ItemsAdapter(singleitem, quans));
 
                 }
 
@@ -276,7 +285,7 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
         pay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                pa=1;
+                pa = 1;
                 orderid = randomString();
 
                 final Map order = new HashMap();
@@ -286,13 +295,13 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
                 order.put("email", email);
                 order.put("price", String.valueOf(pri));
                 order.put("discount", String.valueOf(dis));
-                order.put("delievry", String.valueOf(del));
+                order.put("delivery", String.valueOf(del));
                 order.put("total", total);
                 order.put("userid", FirebaseAuth.getInstance().getCurrentUser().getUid());
                 order.put("timestamp", ServerValue.TIMESTAMP);
                 order.put("status", "Payment Pending");
                 order.put("orderid", orderid);
-                order.put("type","new");
+                order.put("type", "new");
 
                 FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).setValue(order).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
@@ -306,12 +315,12 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
                                 for (int m = 0; m < ids.size(); m++) {
                                     final int finalM = m;
 
-                                    Map map=new HashMap();
-                                    map.put("itemid",ids.get(m));
-                                    map.put("quantity",quans.get(m));
-                                    map.put("discount",discounts.get(m));
-                                    map.put("delievry",delieveries.get(m));
-                                    map.put("price",prices.get(m));
+                                    Map map = new HashMap();
+                                    map.put("itemid", ids.get(m));
+                                    map.put("quantity", quans.get(m));
+                                    map.put("discount", discounts.get(m));
+                                    map.put("delivery", deliveries.get(m));
+                                    map.put("price", prices.get(m));
 
                                     databaseReference.child(UUID.randomUUID().toString()).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
@@ -327,7 +336,8 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
                                                                 FirebaseDatabase.getInstance().getReference().child("Items").child(ids.get(l)).addListenerForSingleValueEvent(new ValueEventListener() {
                                                                     @Override
                                                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                                        snapshot.getRef().child("stock").setValue(String.valueOf((Integer.valueOf(snapshot.child("stock").getValue(String.class))) - (Integer.valueOf(quans.get(finalL)))));
+
+                                                                            snapshot.getRef().child("stock").setValue(String.valueOf((Integer.valueOf(snapshot.child("stock").getValue(String.class))) - (Integer.valueOf(quans.get(finalL)))));
                                                                     }
 
                                                                     @Override
@@ -374,60 +384,62 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
                                 databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        Map map=new HashMap();
-                                        map.put("itemid",itemid);
-                                        map.put("quantity","1");
-                                        map.put("discount",String.valueOf(dis));
-                                        map.put("delievry",String.valueOf(del));
-                                        map.put("price",String.valueOf(pri));
 
-                                        snapshot.getRef().child(UUID.randomUUID().toString()).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                if (task.isSuccessful()) {
+                                            Map map = new HashMap();
+                                            map.put("itemid", itemid);
+                                            map.put("quantity", "1");
+                                            map.put("discount", String.valueOf(dis));
+                                            map.put("delivery", String.valueOf(del));
+                                            map.put("price", String.valueOf(pri));
 
-                                                    FirebaseDatabase.getInstance().getReference().child("Items").child(itemid).addListenerForSingleValueEvent(new ValueEventListener() {
-                                                        @Override
-                                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                                            snapshot.getRef().child("stock").setValue(String.valueOf((Integer.valueOf(snapshot.child("stock").getValue(String.class))) - 1));
+                                            snapshot.getRef().child(UUID.randomUUID().toString()).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    if (task.isSuccessful()) {
+
+                                                        FirebaseDatabase.getInstance().getReference().child("Items").child(itemid).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                            @Override
+                                                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                                                snapshot.getRef().child("stock").setValue(String.valueOf((Integer.valueOf(snapshot.child("stock").getValue(String.class))) - 1));
+                                                            }
+
+                                                            @Override
+                                                            public void onCancelled(@NonNull DatabaseError error) {
+
+                                                            }
+                                                        });
+
+                                                        Checkout checkout = new Checkout();
+
+                                                        try {
+                                                            JSONObject options = new JSONObject();
+
+                                                            options.put("name", "Merchant Name");
+                                                            options.put("currency", "INR");
+                                                            options.put("prefill.email", email);
+                                                            options.put("prefill.contact", phone2);
+                                                            options.put("amount", paycost);//pass amount in currency subunits
+                                                            checkout.open(OrderDetails.this, options);
+
+
+                                                        } catch (Exception e) {
+                                                            Log.e("TAG", "Error in starting Razorpay Checkout", e);
                                                         }
 
-                                                        @Override
-                                                        public void onCancelled(@NonNull DatabaseError error) {
-
-                                                        }
-                                                    });
-
-                                                    Checkout checkout = new Checkout();
-
-                                                    try {
-                                                        JSONObject options = new JSONObject();
-
-                                                        options.put("name", "Merchant Name");
-                                                        options.put("currency", "INR");
-                                                        options.put("prefill.email", email);
-                                                        options.put("prefill.contact", phone2);
-                                                        options.put("amount", paycost);//pass amount in currency subunits
-                                                        checkout.open(OrderDetails.this, options);
-
-
-                                                    } catch (Exception e) {
-                                                        Log.e("TAG", "Error in starting Razorpay Checkout", e);
+                                                    } else {
+                                                        FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).removeValue();
+                                                        Toast.makeText(OrderDetails.this, "Failed", Toast.LENGTH_SHORT).show();
+                                                        Intent intent = new Intent(OrderDetails.this, OrderPaymentStatus.class);
+                                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                        intent.putExtra("status", "failed");
+                                                        startActivity(intent);
+                                                        customType(OrderDetails.this, "left-to-right");
                                                     }
-
-                                                } else {
-                                                    FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).removeValue();
-                                                    Toast.makeText(OrderDetails.this, "Failed", Toast.LENGTH_SHORT).show();
-                                                    Intent intent = new Intent(OrderDetails.this, OrderPaymentStatus.class);
-                                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                                    intent.putExtra("status", "failed");
-                                                    startActivity(intent);
-                                                    customType(OrderDetails.this, "left-to-right");
                                                 }
-                                            }
-                                        });
+                                            });
+
                                     }
 
                                     @Override
@@ -441,6 +453,7 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
                                         startActivity(intent);
                                         customType(OrderDetails.this, "left-to-right");
                                     }
+
                                 });
                             }
 
@@ -470,19 +483,42 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
     @Override
     public void onPaymentSuccess(String s) {
 
+        try {
 
-        Map map=new HashMap();
-        map.put("text","Order Placed");
-        map.put("timestamp",ServerValue.TIMESTAMP);
+            Map map = new HashMap();
+            map.put("text", "Order Placed");
+            map.put("timestamp", ServerValue.TIMESTAMP);
 
 
-        FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("tracking").child(UUID.randomUUID().toString()).setValue(map);
+            FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("tracking").child(UUID.randomUUID().toString()).setValue(map);
 
-        if (itemid == null) {
-            FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("status").setValue("Payment Success").addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if (task.isSuccessful()) {
+            if (itemid == null) {
+                FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("status").setValue("Payment Success").addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(OrderDetails.this, "Success", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(OrderDetails.this, OrderPaymentStatus.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                            intent.putExtra("status", "success");
+                            startActivity(intent);
+                            customType(OrderDetails.this, "left-to-right");
+                            SendNoti sendNoti = new SendNoti();
+                            sendNoti.sendNotification(OrderDetails.this, "pj2RDmhgXEVjn3zrMaYYJ25vFvk1", "New Order", "You got a new order");
+
+
+                        }
+                    }
+                });
+
+            } else {
+
+                FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("status").setValue("Payment Success").addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
                             Toast.makeText(OrderDetails.this, "Success", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(OrderDetails.this, OrderPaymentStatus.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -492,28 +528,16 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
                             startActivity(intent);
                             customType(OrderDetails.this, "left-to-right");
 
-                    }
-                }
-            });
-
-        } else {
-            FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).child("status").setValue("Payment Success").addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(OrderDetails.this, "Success", Toast.LENGTH_SHORT).show();
-                        Intent intent = new Intent(OrderDetails.this, OrderPaymentStatus.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        intent.putExtra("status", "success");
-                        startActivity(intent);
-                        customType(OrderDetails.this, "left-to-right");
+                        }
+                        SendNoti sendNoti = new SendNoti();
+                        sendNoti.sendNotification(OrderDetails.this, "pj2RDmhgXEVjn3zrMaYYJ25vFvk1", "New Order", "You got a new order");
 
                     }
-                }
-            });
+                });
 
+            }
+        } catch (Exception e) {
+            Log.i("OrderDetails", e.getMessage());
         }
 
     }/*{
@@ -532,7 +556,7 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
                 order.put("email", email);
                 order.put("price", String.valueOf(pri));
                 order.put("discount", String.valueOf(dis));
-                order.put("delievry", String.valueOf(del));
+                order.put("delivery", String.valueOf(del));
                 order.put("total", total);
                 order.put("userid", FirebaseAuth.getInstance().getCurrentUser().getUid());
                 order.put("timestamp", String.valueOf(ServerValue.TIMESTAMP));
@@ -606,7 +630,7 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
             order.put("email", email);
             order.put("price", String.valueOf(pri));
             order.put("discount", String.valueOf(dis));
-            order.put("delievry", String.valueOf(del));
+            order.put("delivery", String.valueOf(del));
             order.put("total", total);
             order.put("userid", FirebaseAuth.getInstance().getCurrentUser().getUid());
             order.put("timestamp", String.valueOf(ServerValue.TIMESTAMP));
@@ -742,7 +766,8 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
             FirebaseDatabase.getInstance().getReference().child("Items").child(itemid).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    snapshot.getRef().child("stock").setValue(String.valueOf((Integer.valueOf(snapshot.child("stock").getValue(String.class))) + 1));
+
+                        snapshot.getRef().child("stock").setValue(String.valueOf((Integer.valueOf(snapshot.child("stock").getValue(String.class))) + 1));
                 }
 
                 @Override
@@ -776,57 +801,60 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
             FirebaseDatabase.getInstance().getReference().child("Items").child(itemids.get(position)).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
 
-                    if (position == 0) {
-                        circularProgressBar.setVisibility(View.GONE);
-                    }
-                    itemdetails itemdetails = snapshot.getValue(com.example.itshop.itemdetails.class);
+                        if (position == 0) {
+                            circularProgressBar.setVisibility(View.GONE);
+                        }
+                        itemdetails itemdetails = snapshot.getValue(com.example.itshop.itemdetails.class);
 
-                    holder.name.setText(itemdetails.getName());
-                    Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
+                        holder.name.setText(itemdetails.getName());
+                        Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
 
-                    if (state.equals("Himachal Pradesh") || state.equals("Haryana") || state.equals("Punjab") || state.equals("Chandigarh")) {
-                        holder.delievry.setText("+ " + (format.format(new BigDecimal(snapshot.child("delstate1").getValue(String.class)))) + " delievry");
-                    } else if (state.equals("Uttarakhand") || state.equals("Uttar Pradesh") || state.equals("Rajasthan") || state.equals("Delhi")) {
-                        holder.delievry.setText("+ " + (format.format(new BigDecimal(snapshot.child("delstate2").getValue(String.class)))) + " delievry");
-                    } else {
-                        holder.delievry.setText("+ " + (format.format(new BigDecimal(snapshot.child("delstate3").getValue(String.class)))) + " delievry");
-                    }
-
-
-                    if (snapshot.child("discount").getValue(String.class) == null || snapshot.child("discount").getValue(String.class).equals("") || snapshot.child("discount").getValue(String.class).equals("0")) {
-                        holder.price.setText(format.format(new BigDecimal(snapshot.child("price").getValue(String.class))));
-
-                    } else {
-                        double am = (Integer.valueOf(snapshot.child("price").getValue(String.class))) - (((Double.valueOf(snapshot.child("discount").getValue(String.class))) * 0.01) * (Integer.valueOf(snapshot.child("price").getValue(String.class))));
-                        holder.price.setText(format.format(new BigDecimal(String.valueOf(am))));
-                        holder.discount.setText(format.format(new BigDecimal(snapshot.child("price").getValue(String.class))));
-                        holder.discount.setVisibility(View.VISIBLE);
-                        holder.discount.setPaintFlags(discount.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                    }
+                        if (state.equals("Himachal Pradesh") || state.equals("Haryana") || state.equals("Punjab") || state.equals("Chandigarh")) {
+                            holder.delivery.setText("+ " + (format.format(new BigDecimal(snapshot.child("delstate1").getValue(String.class)))) + " delivery");
+                        } else if (state.equals("Uttarakhand") || state.equals("Uttar Pradesh") || state.equals("Rajasthan") || state.equals("Delhi")) {
+                            holder.delivery.setText("+ " + (format.format(new BigDecimal(snapshot.child("delstate2").getValue(String.class)))) + " delivery");
+                        } else {
+                            holder.delivery.setText("+ " + (format.format(new BigDecimal(snapshot.child("delstate3").getValue(String.class)))) + " delivery");
+                        }
 
 
-                    if (itemid == null)
-                        holder.quantity.setText("Quantity: " + quans.get(position));
-                    else holder.quantity.setText("Quantity: 1");
+                        if (snapshot.child("discount").getValue(String.class) == null || snapshot.child("discount").getValue(String.class).equals("") || snapshot.child("discount").getValue(String.class).equals("0")) {
+                            holder.price.setText(format.format(new BigDecimal(snapshot.child("price").getValue(String.class))));
 
-                    snapshot.child("images").getRef().addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        } else {
+                            double am = (Integer.valueOf(snapshot.child("price").getValue(String.class))) - (((Double.valueOf(snapshot.child("discount").getValue(String.class))) * 0.01) * (Integer.valueOf(snapshot.child("price").getValue(String.class))));
+                            holder.price.setText(format.format(new BigDecimal(String.valueOf(am))));
+                            holder.discount.setText(format.format(new BigDecimal(snapshot.child("price").getValue(String.class))));
+                            holder.discount.setVisibility(View.VISIBLE);
+                            holder.discount.setPaintFlags(discount.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                        }
 
-                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                Glide.with(OrderDetails.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
-                                break;
+
+                        if (itemid == null)
+                            holder.quantity.setText("Quantity: " + quans.get(position));
+                        else holder.quantity.setText("Quantity: 1");
+
+                        snapshot.child("images").getRef().addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                if (snapshot.exists()) {
+
+                                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                        Glide.with(OrderDetails.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
+                                        break;
+                                    }
+                                }
                             }
 
-                        }
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
+                            }
+                        });
 
-                        }
-                    });
-
+                    }
                 }
 
                 @Override
@@ -846,7 +874,7 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
     private class ItemViewHolder extends RecyclerView.ViewHolder {
 
         ImageView imageView;
-        TextView name, discount, price, quantity, delievry;
+        TextView name, discount, price, quantity, delivery;
 
         public ItemViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -856,7 +884,7 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
             discount = itemView.findViewById(R.id.discount);
             price = itemView.findViewById(R.id.price);
             quantity = itemView.findViewById(R.id.quantity);
-            delievry = itemView.findViewById(R.id.delievry);
+            delivery = itemView.findViewById(R.id.delivery);
         }
 
     }
@@ -884,8 +912,7 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
     @Override
     protected void onPause() {
         super.onPause();
-        if(progressDialog!=null)
-        {
+        if (progressDialog != null) {
             progressDialog.dismiss();
         }
     }
@@ -893,10 +920,8 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
     @Override
     protected void onResume() {
         super.onResume();
-        if(pa==1)
-        {
-            if(progressDialog!=null)
-            {
+        if (pa == 1) {
+            if (progressDialog != null) {
                 progressDialog.show();
             }
         }
@@ -905,8 +930,7 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(progressDialog!=null)
-        {
+        if (progressDialog != null) {
             progressDialog.dismiss();
         }
     }

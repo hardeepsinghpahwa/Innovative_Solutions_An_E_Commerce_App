@@ -9,11 +9,14 @@ import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -22,6 +25,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -46,7 +50,7 @@ import java.util.Locale;
 public class OrderDetailStatus extends AppCompatActivity {
 
     String orderid;
-    TextView addresss, price2, delievrytotal, discount, totalprice, orderidd,trackingtext,orderoptionstxt,trackingid,copyandgo,cancelitems,replaceitems,returnitems;
+    TextView addresss, price2, deliverytotal, discount, totalprice, orderidd,trackingtext,trackingid,copyandgo,cancelitems,replaceitems,returnitems;
     RecyclerView recyclerView, trackingrecyview;
     ArrayList<String> ids, quans,prices,discounts,deliveries;
     ArrayList<tracking>tracks;
@@ -54,7 +58,6 @@ public class OrderDetailStatus extends AppCompatActivity {
     CircularProgressBar circularProgressBar;
     CardView can,retu,repl;
     Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,7 +75,7 @@ public class OrderDetailStatus extends AppCompatActivity {
 
         addresss = findViewById(R.id.address);
         price2 = findViewById(R.id.pricee);
-        delievrytotal = findViewById(R.id.delievrytotal);
+        deliverytotal = findViewById(R.id.deliverytotal);
         discount = findViewById(R.id.discount);
         totalprice = findViewById(R.id.totalprice);
         orderidd = findViewById(R.id.orderid);
@@ -89,7 +92,6 @@ public class OrderDetailStatus extends AppCompatActivity {
         can=findViewById(R.id.cardView23);
         repl=findViewById(R.id.cardView21);
         retu=findViewById(R.id.cardView20);
-        orderoptionstxt=findViewById(R.id.orderoptionstext);
 
 
         cancelitems.setOnClickListener(new View.OnClickListener() {
@@ -124,103 +126,304 @@ public class OrderDetailStatus extends AppCompatActivity {
         });
 
 
-        FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).addListenerForSingleValueEvent(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference().child("Active Orders").child(orderid).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull final DataSnapshot snapshot) {
 
-                if(snapshot.child("status").getValue(String.class).equals("Payment Pending"))
-                {
-                    trackingtext.setText("Your payment for this order is still pending. Please wait for the confirmation.");
-                }
-                else {
-                    snapshot.getRef().child("tracking").addValueEventListener(new ValueEventListener() {
+                    cancelitems.setEnabled(true);
+                if (snapshot.exists()) {
+                    if (snapshot.child("status").getValue(String.class).equals("Payment Pending")) {
+                        trackingtext.setText("Your payment for this order is still pending. Please wait for the confirmation.");
+                    } else {
+                        snapshot.getRef().child("tracking").addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                tracks.clear();
+                                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                    tracks.add(new tracking((dataSnapshot.child("text").getValue(String.class)), dataSnapshot.child("timestamp").getValue(Long.class)));
+                                    if (dataSnapshot.child("text").getValue(String.class).equals("Delivered")) {
+                                        can.setVisibility(View.GONE);
+                                    }
+                                }
+
+                                Collections.sort(tracks);
+
+                                trackingrecyview.setLayoutManager(new LinearLayoutManager(OrderDetailStatus.this));
+                                trackingrecyview.setAdapter(new TrackingAdapter(tracks));
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+                    }
+
+                    if (snapshot.child("status").getValue(String.class).equals("Delivered")) {
+                        snapshot.getRef().child("items").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                if(snapshot.exists())
+                                {
+
+                                    final int[] m = {0};
+                                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                    FirebaseDatabase.getInstance().getReference().child("Items").child(dataSnapshot.child("itemid").getValue(String.class)).addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                            if (snapshot.child("replacement").getValue(String.class) != null && !snapshot.child("replacement").getValue(String.class).equals("0") && !snapshot.child("replacement").getValue(String.class).equals("")) {
+                                                repl.setVisibility(View.VISIBLE);
+                                                m[0]++;
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                        }
+                                    });
+
+
+                                    if (m[0] != 0) {
+                                        break;
+                                    }
+                                }
+
+                                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                    FirebaseDatabase.getInstance().getReference().child("Items").child(dataSnapshot.child("itemid").getValue(String.class)).addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                            if (snapshot.child("returnable").getValue(String.class) != null && !snapshot.child("returnable").getValue(String.class).equals("0") && !snapshot.child("returnable").getValue(String.class).equals("")) {
+                                                Log.i("return", snapshot.child("returnable").getValue(String.class));
+                                                retu.setVisibility(View.VISIBLE);
+                                                m[0]++;
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onCancelled(@NonNull DatabaseError error) {
+
+                                        }
+                                    });
+
+
+                                    if (m[0] != 0) {
+                                        break;
+                                    }
+                                }
+
+                            }}
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
+
+                    }
+                    if (snapshot.child("status").getValue(String.class).equals("Cancelled")) {
+                        retu.setVisibility(View.GONE);
+                        repl.setVisibility(View.GONE);
+                        can.setVisibility(View.GONE);
+                    }
+
+                    if (snapshot.child("trackingid").exists()) {
+                        constraintLayout.setVisibility(View.VISIBLE);
+                        trackingid.setText("Tracking ID : " + snapshot.child("trackingid").getValue(String.class));
+
+                        copyandgo.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                                ClipData clip = ClipData.newPlainText("Tracking ID", snapshot.child("trackingid").getValue(String.class));
+                                clipboard.setPrimaryClip(clip);
+
+                                String url = "http://trackoncourier.com/Tracking/t2/MultipleTracking";
+                                Intent i = new Intent(Intent.ACTION_VIEW);
+                                i.setData(Uri.parse(url));
+                                startActivity(i);
+                            }
+                        });
+                    }
+
+
+                    snapshot.getRef().child("items").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                tracks.add(new tracking((dataSnapshot.child("text").getValue(String.class)),dataSnapshot.child("timestamp").getValue(Long.class)));
-                            }
+                                ids.clear();
+                                quans.clear();
+                                prices.clear();
+                                deliveries.clear();
+                                discounts.clear();
+                                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                    ids.add(dataSnapshot.child("itemid").getValue(String.class));
+                                    quans.add(dataSnapshot.child("quantity").getValue(String.class));
+                                    prices.add(dataSnapshot.child("price").getValue(String.class));
+                                    deliveries.add(dataSnapshot.child("delivery").getValue(String.class));
+                                    discounts.add(dataSnapshot.child("discount").getValue(String.class));
+                                }
+                                recyclerView.setLayoutManager(new LinearLayoutManager(OrderDetailStatus.this));
+                                recyclerView.setAdapter(new ItemsAdapter(ids, quans, prices, deliveries, discounts));
 
-                            Collections.sort(tracks);
-
-                            trackingrecyview.setLayoutManager(new LinearLayoutManager(OrderDetailStatus.this));
-                            trackingrecyview.setAdapter(new TrackingAdapter(tracks));
                         }
-
                         @Override
                         public void onCancelled(@NonNull DatabaseError error) {
 
                         }
                     });
-                }
 
-                if(snapshot.child("status").getValue(String.class).equals("Delievered"))
-                {
-                    retu.setVisibility(View.VISIBLE);
-                    repl.setVisibility(View.VISIBLE);
-                }
-                if(snapshot.child("status").getValue(String.class).equals("Cancelled"))
-                {
-                    retu.setVisibility(View.GONE);
-                    repl.setVisibility(View.GONE);
-                    can.setVisibility(View.GONE);
-                    orderoptionstxt.setVisibility(View.GONE);
-                }
-
-                if(snapshot.child("trackingid").exists())
-                {
-                    constraintLayout.setVisibility(View.VISIBLE);
-                    trackingid.setText("Tracking ID : "+snapshot.child("trackingid").getValue(String.class));
-
-                    copyandgo.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                            ClipData clip = ClipData.newPlainText("Tracking ID",snapshot.child("trackingid").getValue(String.class));
-                            clipboard.setPrimaryClip(clip);
-
-                            String url = "http://trackoncourier.com/Tracking/t2/MultipleTracking";
-                            Intent i = new Intent(Intent.ACTION_VIEW);
-                            i.setData(Uri.parse(url));
-                            startActivity(i);
-                        }
-                    });
-                }
+                    deliverytotal.setText(format.format(new BigDecimal(snapshot.child("delivery").getValue(String.class))));
+                    orderidd.setText("Order ID : " + snapshot.getKey());
+                    discount.setText(format.format(new BigDecimal(snapshot.child("discount").getValue(String.class))));
+                    addresss.setText(snapshot.child("name").getValue(String.class) + "\n" + snapshot.child("address").getValue(String.class) + "\n" + snapshot.child("phone").getValue(String.class));
+                    totalprice.setText(format.format(new BigDecimal(String.valueOf((Double.valueOf(snapshot.child("price").getValue(String.class))) + (Double.valueOf(snapshot.child("delivery").getValue(String.class))) - (Double.valueOf((snapshot.child("discount").getValue(String.class))))))));
+                    price2.setText(format.format(new BigDecimal(snapshot.child("price").getValue(String.class))));
 
 
-                snapshot.getRef().child("items").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            ids.add(dataSnapshot.child("itemid").getValue(String.class));
-                            quans.add(dataSnapshot.child("quantity").getValue(String.class));
-                            prices.add(dataSnapshot.child("price").getValue(String.class));
-                            deliveries.add(dataSnapshot.child("delievry").getValue(String.class));
-                            discounts.add(dataSnapshot.child("discount").getValue(String.class));
-                        }
-                        recyclerView.setLayoutManager(new LinearLayoutManager(OrderDetailStatus.this));
-                        recyclerView.setAdapter(new ItemsAdapter(ids, quans,prices,deliveries,discounts));
+                    if (snapshot.child("return").exists()) {
+                        retu.setVisibility(View.VISIBLE);
+                        returnitems.setText("View Return Details");
+
+                        returnitems.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+
+                                final RecyclerView recyclerView1;
+                                final TextView refund, reason;
+                                final double[] refundamount = {0};
+
+                                final Dialog dialog = new Dialog(OrderDetailStatus.this);
+                                dialog.setContentView(R.layout.returnreplacedialog);
+                                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                dialog.getWindow().setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                dialog.getWindow().setWindowAnimations(R.style.AppTheme_UpDown);
+
+                                recyclerView1 = dialog.findViewById(R.id.itemrecyview);
+                                refund = dialog.findViewById(R.id.refundamount);
+                                reason = dialog.findViewById(R.id.reason);
+
+                                snapshot.getRef().child("return").addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        reason.setText(snapshot.child("reason").getValue(String.class));
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+
+                                snapshot.getRef().child("return").child("items").addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                                            ids.clear();
+                                            quans.clear();
+                                            prices.clear();
+                                            deliveries.clear();
+                                            discounts.clear();
+                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                                ids.add(dataSnapshot.child("itemid").getValue(String.class));
+                                                quans.add(dataSnapshot.child("quantity").getValue(String.class));
+                                                prices.add(dataSnapshot.child("price").getValue(String.class));
+                                                deliveries.add(dataSnapshot.child("delivery").getValue(String.class));
+                                                discounts.add(dataSnapshot.child("discount").getValue(String.class));
+                                                refundamount[0] = refundamount[0] + (Double.valueOf(dataSnapshot.child("price").getValue(String.class)) - (Double.valueOf(dataSnapshot.child("discount").getValue(String.class))));
+                                            }
+                                            recyclerView1.setLayoutManager(new LinearLayoutManager(OrderDetailStatus.this));
+                                            recyclerView1.setAdapter(new ItemsAdapter(ids, quans, prices, deliveries, discounts));
+                                            Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
+                                            refund.setText(format.format(new BigDecimal("Refund Amount : " + refundamount[0])));
+                                            refund.setVisibility(View.VISIBLE);
+                                        }
+
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+
+                                dialog.show();
+                            }
+                        });
+
+                    } else if (snapshot.child("replace").exists()) {
+                        retu.setVisibility(View.VISIBLE);
+                        returnitems.setText("View Replacement Details");
+
+                        returnitems.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+
+                                final RecyclerView recyclerView1;
+                                final TextView reason;
+
+                                final Dialog dialog = new Dialog(OrderDetailStatus.this);
+                                dialog.setContentView(R.layout.returnreplacedialog);
+                                dialog.setCanceledOnTouchOutside(false);
+                                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                                dialog.getWindow().setLayout(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                dialog.getWindow().setWindowAnimations(R.style.AppTheme_UpDown);
+
+                                recyclerView1 = dialog.findViewById(R.id.itemrecyview);
+                                reason = dialog.findViewById(R.id.reason);
+
+                                snapshot.getRef().child("replace").addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                        if(snapshot.exists())
+                                        {
+                                            reason.setText(snapshot.child("reason").getValue(String.class));
+                                    }}
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+                                snapshot.getRef().child("replace").child("items").addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+
+                                            ids.clear();
+                                        quans.clear();
+                                        prices.clear();
+                                        deliveries.clear();
+                                        discounts.clear();
+                                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                            ids.add(dataSnapshot.child("itemid").getValue(String.class));
+                                            quans.add(dataSnapshot.child("quantity").getValue(String.class));
+                                            prices.add(dataSnapshot.child("price").getValue(String.class));
+                                            deliveries.add(dataSnapshot.child("delivery").getValue(String.class));
+                                            discounts.add(dataSnapshot.child("discount").getValue(String.class));
+                                        }
+                                        recyclerView1.setLayoutManager(new LinearLayoutManager(OrderDetailStatus.this));
+                                        recyclerView1.setAdapter(new ItemsAdapter(ids, quans, prices, deliveries, discounts));
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {
+
+                                    }
+                                });
+
+                                dialog.show();
+                            }
+                        });
                     }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-
-                    }
-                });
-
-                delievrytotal.setText(format.format(new BigDecimal(snapshot.child("delievry").getValue(String.class))));
-                orderidd.setText("Order ID : " + snapshot.getKey());
-                discount.setText(format.format(new BigDecimal(snapshot.child("discount").getValue(String.class))));
-                addresss.setText(snapshot.child("name").getValue(String.class) + "\n" + snapshot.child("address").getValue(String.class) + "\n" + snapshot.child("phone").getValue(String.class));
-                totalprice.setText(format.format(new BigDecimal(String.valueOf((Double.valueOf(snapshot.child("price").getValue(String.class))) + (Double.valueOf(snapshot.child("delievry").getValue(String.class))) - (Double.valueOf((snapshot.child("discount").getValue(String.class))))))));
-                price2.setText(format.format(new BigDecimal(snapshot.child("price").getValue(String.class))));
-
+                }
             }
+                @Override
+                public void onCancelled (@NonNull DatabaseError error){
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                }
 
-            }
         });
     }
 
@@ -276,12 +479,13 @@ public class OrderDetailStatus extends AppCompatActivity {
                     snapshot.child("images").getRef().addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if(snapshot.exists()) {
 
-                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                Glide.with(OrderDetailStatus.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
-                                break;
+                                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                    Glide.with(OrderDetailStatus.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
+                                    break;
+                                }
                             }
-
                         }
 
                         @Override
@@ -309,7 +513,7 @@ public class OrderDetailStatus extends AppCompatActivity {
     private class ItemViewHolder extends RecyclerView.ViewHolder {
 
         ImageView imageView;
-        TextView name, discount, price, quantity, delievry;
+        TextView name, discount, price, quantity, delivery;
 
         public ItemViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -319,7 +523,7 @@ public class OrderDetailStatus extends AppCompatActivity {
             discount = itemView.findViewById(R.id.discount);
             price = itemView.findViewById(R.id.price);
             quantity = itemView.findViewById(R.id.quantity);
-            delievry = itemView.findViewById(R.id.delievry);
+            delivery = itemView.findViewById(R.id.delivery);
         }
 
     }
@@ -360,7 +564,7 @@ public class OrderDetailStatus extends AppCompatActivity {
 
                 holder.text.setText(itemids.get(position).getTrack()+", "+createDate(itemids.get(position).getTimestamp()));
                 holder.text.setCompoundDrawablesWithIntrinsicBounds(unwrappedDrawable, null, null, null);
-            } else if (itemids.get(position).getTrack().equals("Delievered")) {
+            } else if (itemids.get(position).getTrack().equals("Delivered")) {
                 Drawable unwrappedDrawable = ContextCompat.getDrawable(getApplicationContext(), R.drawable.circle);
                 unwrappedDrawable.setTint(getColor(R.color.green));
 

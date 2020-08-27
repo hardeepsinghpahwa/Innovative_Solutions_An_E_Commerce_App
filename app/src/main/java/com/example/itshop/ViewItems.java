@@ -131,9 +131,12 @@ public class ViewItems extends AppCompatActivity {
                 FirebaseDatabase.getInstance().getReference().child("Items").child(model.getImage()).child("images").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            Glide.with(ViewItems.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
-                            break;
+                        if(snapshot.exists()) {
+
+                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                Glide.with(ViewItems.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
+                                break;
+                            }
                         }
                     }
 

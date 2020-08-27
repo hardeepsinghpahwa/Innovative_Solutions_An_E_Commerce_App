@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.example.itshop.Notifications.MyFirebaseMessagingService;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseException;
@@ -112,16 +113,16 @@ public class PhoneVerification extends AppCompatActivity {
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         if(dataSnapshot.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).exists())
                         {
-                           /* FirebaseDatabase.getInstance().getReference().child("Tokens").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("token").setValue(MyFirebaseMessagingService.getToken(getApplicationContext())).addOnCompleteListener(new OnCompleteListener<Void>() {
+                           FirebaseDatabase.getInstance().getReference().child("Tokens").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("token").setValue(MyFirebaseMessagingService.getToken(getApplicationContext())).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                    progressBar.setVisibility(View.GONE);
+                                    Intent intent=new Intent(PhoneVerification.this, Home.class);
+                                    startActivity(intent);
+                                    customType(PhoneVerification.this,"left-to-right");
+                                    finish();
                                 }
-                            });*/
-                            Intent intent=new Intent(PhoneVerification.this, Home.class);
-                            startActivity(intent);
-                            customType(PhoneVerification.this,"left-to-right");
-                            finish();
+                            });
 
 
                         }

@@ -48,6 +48,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:sliderAnimationDuration="600"
                 app:sliderAutoCycleDirection="back_and_forth"
+                android:layoutAnimation="@anim/recyviewanimation"
                 app:sliderIndicatorAnimationDuration="600"
                 app:sliderIndicatorGravity="center_horizontal|bottom"
                 app:sliderIndicatorMargin="15dp"

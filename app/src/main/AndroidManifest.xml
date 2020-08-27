@@ -57,6 +57,18 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".Notifications.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name=".Notifications.NotificationReciever"
+            android:enabled="true" />
+
         <meta-data
             android:name="com.razorpay.ApiKey"
             android:value="rzp_test_6gqCAmSMnS7C1R" />

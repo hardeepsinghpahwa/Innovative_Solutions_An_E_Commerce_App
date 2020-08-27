@@ -111,9 +111,8 @@ public class Home extends AppCompatActivity
                 floatingSearchView.setSearchFocused(true);
 
                 recyclerView.setLayoutManager(new LinearLayoutManager(Home.this));
-                final ItemAdapter adapter=new ItemAdapter(items);
+                final ItemAdapter adapter = new ItemAdapter(items);
                 recyclerView.setAdapter(adapter);
-
 
 
                 floatingSearchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
@@ -124,38 +123,40 @@ public class Home extends AppCompatActivity
                         FirebaseDatabase.getInstance().getReference().child("Items").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                items.clear();
-                                floatingSearchView.hideProgress();
                                 if (snapshot.exists()) {
-                                    if (!newQuery.equals("")) {
-                                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                    items.clear();
+                                    floatingSearchView.hideProgress();
+                                    if (snapshot.exists()) {
+                                        if (!newQuery.equals("")) {
+                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
 
-                                            String currentQuery2 = newQuery.replaceAll(" ", "");
+                                                String currentQuery2 = newQuery.replaceAll(" ", "");
 
-                                            if (dataSnapshot.child("name").getValue(String.class).toLowerCase().contains(currentQuery2.toLowerCase())) {
-                                                items.add(new item(dataSnapshot.child("name").getValue(String.class), dataSnapshot.getKey()));
+                                                if (dataSnapshot.child("name").getValue(String.class).toLowerCase().contains(currentQuery2.toLowerCase())) {
+                                                    items.add(new item(dataSnapshot.child("name").getValue(String.class), dataSnapshot.getKey()));
+                                                }
                                             }
+
+                                            adapter.notifyDataSetChanged();
                                         }
 
-                                        adapter.notifyDataSetChanged();
+                                        if (items.size() == 0) {
+                                            num.setVisibility(View.GONE);
+                                            noresults.setVisibility(View.VISIBLE);
+                                            recyclerView.setVisibility(View.GONE);
+                                            circularProgressBar.setVisibility(View.GONE);
+
+                                        } else {
+                                            recyclerView.setVisibility(View.VISIBLE);
+                                            num.setText(items.size() + " result(s) found");
+                                            num.setVisibility(View.VISIBLE);
+                                            noresults.setVisibility(View.GONE);
+                                            circularProgressBar.setVisibility(View.GONE);
+
+
+                                        }
+
                                     }
-
-                                    if (items.size() == 0) {
-                                        num.setVisibility(View.GONE);
-                                        noresults.setVisibility(View.VISIBLE);
-                                        recyclerView.setVisibility(View.GONE);
-                                        circularProgressBar.setVisibility(View.GONE);
-
-                                    } else {
-                                        recyclerView.setVisibility(View.VISIBLE);
-                                        num.setText(items.size() + " result(s) found");
-                                        num.setVisibility(View.VISIBLE);
-                                        noresults.setVisibility(View.GONE);
-                                        circularProgressBar.setVisibility(View.GONE);
-
-
-                                    }
-
                                 }
                             }
 
@@ -288,10 +289,12 @@ public class Home extends AppCompatActivity
         FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                name.setText(snapshot.child("name").getValue(String.class));
-                email.setText(snapshot.child("email").getValue(String.class));
+                if (snapshot.exists()) {
+                    name.setText(snapshot.child("name").getValue(String.class));
+                    email.setText(snapshot.child("email").getValue(String.class));
 
-                Glide.with(Home.this).load(snapshot.child("profilepic").getValue(String.class)).into(propic);
+                    Glide.with(Home.this).load(snapshot.child("profilepic").getValue(String.class)).into(propic);
+                }
             }
 
             @Override
@@ -404,41 +407,46 @@ public class Home extends AppCompatActivity
             FirebaseDatabase.getInstance().getReference().child("Items").child(results.get(position).getItemid()).addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    itemdetails itemdetails = snapshot.getValue(com.example.itshop.itemdetails.class);
+                    if (snapshot.exists()) {
 
-                    holder.name.setText(itemdetails.getName());
-                    holder.rating.setText(itemdetails.getRating());
+                        itemdetails itemdetails = snapshot.getValue(com.example.itshop.itemdetails.class);
+
+                        holder.name.setText(itemdetails.getName());
+                        holder.rating.setText(itemdetails.getRating());
 
 
-                    if (itemdetails.getDiscount() == null || itemdetails.getDiscount().equals("") || itemdetails.getDiscount().equals("0")) {
-                        Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
-                        holder.price.setText(format.format(new BigDecimal(itemdetails.getPrice())));
+                        if (itemdetails.getDiscount() == null || itemdetails.getDiscount().equals("") || itemdetails.getDiscount().equals("0")) {
+                            Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
+                            holder.price.setText(format.format(new BigDecimal(itemdetails.getPrice())));
 
-                    } else {
-                        double am = (Integer.valueOf(itemdetails.getPrice())) - (((Integer.valueOf(itemdetails.getDiscount())) * 0.01) * (Integer.valueOf(itemdetails.getPrice())));
-                        Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
-                        holder.price.setText(format.format(new BigDecimal(String.valueOf(am))));
-                        holder.discount.setText(format.format(new BigDecimal(itemdetails.getPrice())));
-                        holder.discount.setVisibility(View.VISIBLE);
-                        holder.discount.setPaintFlags(holder.discount.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                        } else {
+                            double am = (Integer.valueOf(itemdetails.getPrice())) - (((Integer.valueOf(itemdetails.getDiscount())) * 0.01) * (Integer.valueOf(itemdetails.getPrice())));
+                            Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
+                            holder.price.setText(format.format(new BigDecimal(String.valueOf(am))));
+                            holder.discount.setText(format.format(new BigDecimal(itemdetails.getPrice())));
+                            holder.discount.setVisibility(View.VISIBLE);
+                            holder.discount.setPaintFlags(holder.discount.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+
+                        }
+
+                        FirebaseDatabase.getInstance().getReference().child("Items").child(results.get(position).getItemid()).child("images").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                if (snapshot.exists()) {
+                                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                        Glide.with(Home.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
 
                     }
-
-                    FirebaseDatabase.getInstance().getReference().child("Items").child(results.get(position).getItemid()).child("images").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                Glide.with(Home.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
-                                break;
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-
-                        }
-                    });
-
                 }
 
                 @Override
@@ -451,10 +459,10 @@ public class Home extends AppCompatActivity
                 @Override
                 public void onClick(View view) {
                     hideKeyboard(view);
-                    Intent intent=new Intent(Home.this,ItemDetail.class);
-                    intent.putExtra("itemid",results.get(position).getItemid());
+                    Intent intent = new Intent(Home.this, ItemDetail.class);
+                    intent.putExtra("itemid", results.get(position).getItemid());
                     startActivity(intent);
-                    customType(Home.this,"left-to-right");
+                    customType(Home.this, "left-to-right");
                 }
             });
         }
