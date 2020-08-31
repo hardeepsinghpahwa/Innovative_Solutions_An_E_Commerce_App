@@ -47,6 +47,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
+import static maes.tech.intentanim.CustomIntent.customType;
+
 public class OrderDetailStatus extends AppCompatActivity {
 
     String orderid;
@@ -57,6 +59,7 @@ public class OrderDetailStatus extends AppCompatActivity {
     ConstraintLayout constraintLayout;
     CircularProgressBar circularProgressBar;
     CardView can,retu,repl;
+    ImageView back;
     Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
 
     @Override
@@ -92,6 +95,14 @@ public class OrderDetailStatus extends AppCompatActivity {
         can=findViewById(R.id.cardView23);
         repl=findViewById(R.id.cardView21);
         retu=findViewById(R.id.cardView20);
+        back=findViewById(R.id.back);
+
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
 
 
         cancelitems.setOnClickListener(new View.OnClickListener() {
@@ -101,6 +112,7 @@ public class OrderDetailStatus extends AppCompatActivity {
                 intent.putExtra("orderid",orderid);
                 intent.putExtra("type","cancel");
                 startActivity(intent);
+                customType(OrderDetailStatus.this,"left-to-right");
             }
         });
 
@@ -111,6 +123,7 @@ public class OrderDetailStatus extends AppCompatActivity {
                 intent.putExtra("orderid",orderid);
                 intent.putExtra("type","return");
                 startActivity(intent);
+                customType(OrderDetailStatus.this,"left-to-right");
             }
         });
 
@@ -122,6 +135,7 @@ public class OrderDetailStatus extends AppCompatActivity {
                 intent.putExtra("orderid",orderid);
                 intent.putExtra("type","replace");
                 startActivity(intent);
+                customType(OrderDetailStatus.this,"left-to-right");
             }
         });
 
@@ -390,7 +404,7 @@ public class OrderDetailStatus extends AppCompatActivity {
                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
 
 
-                                            ids.clear();
+                                        ids.clear();
                                         quans.clear();
                                         prices.clear();
                                         deliveries.clear();
@@ -607,4 +621,10 @@ public class OrderDetailStatus extends AppCompatActivity {
         return sdf.format(d);
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        customType(OrderDetailStatus.this,"right-to-left");
+
+    }
 }

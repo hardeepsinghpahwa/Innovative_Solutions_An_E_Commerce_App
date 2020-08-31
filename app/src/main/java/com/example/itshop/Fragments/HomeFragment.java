@@ -6,35 +6,22 @@ import android.graphics.Paint;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.arlib.floatingsearchview.FloatingSearchView;
 import com.bumptech.glide.Glide;
 import com.example.itshop.ItemDetail;
 import com.example.itshop.R;
-import com.example.itshop.ViewImage;
-import com.example.itshop.ViewItems;
-import com.example.itshop.item;
 import com.example.itshop.itemdetails;
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.firebase.ui.database.FirebaseRecyclerOptions;
-import com.firebase.ui.database.SnapshotParser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.google.protobuf.StringValue;
 import com.jama.carouselview.CarouselView;
 import com.jama.carouselview.CarouselViewListener;
 import com.jama.carouselview.enums.IndicatorAnimationType;
@@ -44,7 +31,6 @@ import com.smarteist.autoimageslider.SliderAnimations;
 import com.smarteist.autoimageslider.SliderView;
 import com.smarteist.autoimageslider.SliderViewAdapter;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.Format;
 import java.text.NumberFormat;
@@ -138,7 +124,7 @@ public class HomeFragment extends Fragment {
                     newlyadded.add(itemdetails);
                 }
 
-                CarouselView carouselView = v.findViewById(R.id.carousel1);
+                CarouselView carouselView = v.findViewById(R.id.similarproductscyview);
 
                 carouselView.setSize(newlyadded.size());
                 carouselView.setResource(R.layout.image_carousel_item);

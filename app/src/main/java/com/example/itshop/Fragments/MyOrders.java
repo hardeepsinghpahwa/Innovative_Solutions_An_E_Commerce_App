@@ -27,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.itshop.Home;
 import com.example.itshop.OrderDetailStatus;
 import com.example.itshop.R;
 import com.example.itshop.itemdetails;
@@ -57,7 +58,7 @@ public class MyOrders extends AppCompatActivity {
     RecyclerView recyclerView;
     FirebaseRecyclerAdapter<orderdet, OrderViewHolder> firebaseRecyclerAdapter;
     CircularProgressBar circularProgressBar;
-    ImageView back;
+    ImageView back,noorders;
     ArrayList<String> ids,ids2;
     int p = 0;
     Double rat;
@@ -72,6 +73,7 @@ public class MyOrders extends AppCompatActivity {
         back = findViewById(R.id.back);
         ids = new ArrayList<>();
         ids2 = new ArrayList<>();
+        noorders=findViewById(R.id.noorders);
 
         back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -86,6 +88,10 @@ public class MyOrders extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     circularProgressBar.setVisibility(View.GONE);
+                }
+                else {
+                    circularProgressBar.setVisibility(View.GONE);
+                    noorders.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -380,6 +386,10 @@ public class MyOrders extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        if(getIntent().getStringExtra("type")!=null)
+        {
+            startActivity(new Intent(MyOrders.this, Home.class));
+        }
         customType(MyOrders.this, "fadein-to-fadeout");
     }
 

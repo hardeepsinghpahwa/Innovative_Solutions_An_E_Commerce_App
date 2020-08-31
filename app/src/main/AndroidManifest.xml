@@ -5,6 +5,7 @@
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <application
         android:allowBackup="true"
@@ -15,9 +16,10 @@
         android:supportsRtl="true"
         android:theme="@style/NoBarAppTheme"
         tools:targetApi="q">
-        <activity android:name=".CancelReturnReplace"></activity>
+        <activity android:name=".MyReviews"></activity>
+        <activity android:name=".CancelReturnReplace" />
         <activity android:name=".OrderDetailStatus" />
-        <activity android:name=".OrderPaymentStatus"></activity>
+        <activity android:name=".OrderPaymentStatus" />
         <activity android:name=".OrderDetails" />
         <activity android:name=".MyWishlist" />
         <activity android:name=".Addresses" />

@@ -19,16 +19,22 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
-    String body,title;
+    String body, title;
+
     @Override
     public void onNewToken(@NonNull String s) {
         FirebaseInstanceId.getInstance().getInstanceId()
@@ -48,8 +54,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                         FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
                         Token token1 = new Token(token);
 
-                        if(FirebaseAuth.getInstance().getCurrentUser()!=null)
-                        {
+                        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                             FirebaseDatabase.getInstance().getReference("Tokens").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(token1);
                         }
                     }
@@ -66,19 +71,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         super.onMessageReceived(remoteMessage);
 
 
-
-
-        if(!remoteMessage.getData().isEmpty())
-        {
+        if (!remoteMessage.getData().isEmpty()) {
             body = remoteMessage.getData().get("Message");
             title = remoteMessage.getData().get("Title");
-        }
-        else if(remoteMessage.getNotification()!=null)
-        {
-            body=remoteMessage.getNotification().getBody();
-            title=remoteMessage.getNotification().getTitle();
+        } else if (remoteMessage.getNotification() != null) {
+            body = remoteMessage.getNotification().getBody();
+            title = remoteMessage.getNotification().getTitle();
         }
 
+/*
         NotiDatabase database=NotiDatabase.getDatabase(getApplicationContext());
 
         Date date=new Date();
@@ -88,7 +89,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         NotiDetails notiDetails=new NotiDetails(0,title,body,ymdFormat.format(date));
 
         database.notiDao().add(notiDetails);
+*/
 
+        Map map=new HashMap();
+        map.put("title",title);
+        map.put("body",body);
+        map.put("timestamp", ServerValue.TIMESTAMP);
+        map.put("read","0");
+
+        FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Notifications").child(UUID.randomUUID().toString()).setValue(map);
 
         Intent intent = new Intent(getApplicationContext(), Home.class);
 

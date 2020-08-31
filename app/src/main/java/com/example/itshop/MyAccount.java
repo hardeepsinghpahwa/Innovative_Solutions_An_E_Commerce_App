@@ -89,6 +89,17 @@ public class MyAccount extends AppCompatActivity {
         });
 
 
+        myreviews.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent(MyAccount.this,MyReviews.class);
+                startActivity(intent);
+                customType(MyAccount.this,"left-to-right");
+            }
+        });
+
+
+
 
         myaddresses.setOnClickListener(new View.OnClickListener() {
             @Override

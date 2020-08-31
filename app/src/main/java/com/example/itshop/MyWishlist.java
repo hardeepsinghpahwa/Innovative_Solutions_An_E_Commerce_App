@@ -50,8 +50,8 @@ public class MyWishlist extends AppCompatActivity {
     FirebaseRecyclerAdapter<itemdetails, CartViewHolder> firebaseRecyclerAdapter;
     RecyclerView recyclerView;
     ConstraintLayout constraintLayout;
-    int l=0;
-    ImageView imageView,back;
+    int l = 0;
+    ImageView imageView, back;
     CircularProgressBar circularProgressBar;
 
     @Override
@@ -60,10 +60,10 @@ public class MyWishlist extends AppCompatActivity {
         setContentView(R.layout.activity_my_wishlist);
 
         recyclerView = findViewById(R.id.wishlistreycview);
-        constraintLayout=findViewById(R.id.constraintLayout);
-        circularProgressBar=findViewById(R.id.circularProgressBar);
-        imageView=findViewById(R.id.nowishlist);
-        back=findViewById(R.id.back);
+        constraintLayout = findViewById(R.id.constraintLayout);
+        circularProgressBar = findViewById(R.id.circularProgressBar);
+        imageView = findViewById(R.id.nowishlist);
+        back = findViewById(R.id.back);
 
         back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,15 +78,14 @@ public class MyWishlist extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
                 if (snapshot.exists()) {
-
                     circularProgressBar.setVisibility(View.GONE);
-                    if (snapshot.exists()) {
 
-                    } else {
-                        imageView.setVisibility(View.VISIBLE);
-                    }
+                } else {
+                    imageView.setVisibility(View.VISIBLE);
+                    circularProgressBar.setVisibility(View.GONE);
                 }
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
 
@@ -109,165 +108,182 @@ public class MyWishlist extends AppCompatActivity {
             protected void onBindViewHolder(@NonNull final CartViewHolder holder, final int position, @NonNull final itemdetails model) {
 
 
-                        FirebaseDatabase.getInstance().getReference().child("Items").child(model.getImage()).addListenerForSingleValueEvent(new ValueEventListener() {
+                FirebaseDatabase.getInstance().getReference().child("Items").child(model.getImage()).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+
+                            itemdetails itemdetails = snapshot.getValue(com.example.itshop.itemdetails.class);
+
+                            holder.name.setText(itemdetails.getName());
+
+                            if(itemdetails.getRating()!=null && !itemdetails.getRating().equals("")) {
+                                holder.rating.setText(itemdetails.getRating());
+                                holder.rating.setVisibility(View.VISIBLE);
+                            }
+
+                            snapshot.getRef().child("images").addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if (snapshot.exists()) {
+
+                                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                            Glide.with(MyWishlist.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+
+                                }
+                            });
+
+
+                            if (snapshot.child("discount").getValue(String.class) == null || snapshot.child("discount").getValue(String.class).equals("") || snapshot.child("discount").getValue(String.class).equals("0")) {
+                                Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
+                                holder.price.setText(format.format(new BigDecimal(snapshot.child("price").getValue(String.class))));
+
+                            } else {
+                                double am = (Integer.valueOf(snapshot.child("price").getValue(String.class))) - (((Integer.valueOf(snapshot.child("discount").getValue(String.class))) * 0.01) * (Integer.valueOf(snapshot.child("price").getValue(String.class))));
+                                Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
+                                holder.price.setText(format.format(new BigDecimal(String.valueOf(am))));
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+
+                    }
+                });
+
+
+                holder.move.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(final View view) {
+
+
+                        FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                 if (snapshot.exists()) {
 
-                                    itemdetails itemdetails = snapshot.getValue(com.example.itshop.itemdetails.class);
+                                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                                        if (dataSnapshot.child("itemid").getValue(String.class).equals(firebaseRecyclerAdapter.getItem(position).getImage())) {
+                                            l++;
+                                        }
+                                    }
 
-                                    holder.name.setText(itemdetails.getName());
-                                    holder.rating.setText(itemdetails.getRating());
+                                    if (l == 0) {
 
-                                    snapshot.getRef().child("images").addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                            if (snapshot.exists()) {
 
-                                                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                                    Glide.with(MyWishlist.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
-                                                    break;
-                                                }
+                                        final DatabaseReference fromPath = firebaseRecyclerAdapter.getRef(position);
+                                        final DatabaseReference toPath = FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").child(UUID.randomUUID().toString());
+
+                                        fromPath.addListenerForSingleValueEvent(new ValueEventListener() {
+                                            @Override
+                                            public void onDataChange(DataSnapshot dataSnapshot1) {
+                                                l = 0;
+
+
+                                                toPath.setValue(dataSnapshot1.getValue(), new DatabaseReference.CompletionListener() {
+                                                    @Override
+                                                    public void onComplete(@androidx.annotation.Nullable final DatabaseError databaseError, @NonNull final DatabaseReference databaseReference) {
+                                                        if (databaseError != null) {
+                                                            System.out.println("Copy failed");
+                                                            Toast.makeText(MyWishlist.this, "Some Error Occurred", Toast.LENGTH_SHORT).show();
+                                                        } else {
+                                                            fromPath.removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                @Override
+                                                                public void onComplete(@NonNull Task<Void> task) {
+                                                                    if (task.isSuccessful()) {
+                                                                        firebaseRecyclerAdapter.notifyDataSetChanged();
+                                                                        Snackbar snackBar = Snackbar.make(constraintLayout, "Item Moved To  Cart", Snackbar.LENGTH_LONG).setAction("Go To Cart", new View.OnClickListener() {
+                                                                            @Override
+                                                                            public void onClick(View view) {
+                                                                                Intent intent = new Intent(MyWishlist.this, MyCart.class);
+                                                                                startActivity(intent);
+                                                                                customType(MyWishlist.this, "fadein-to-fadeout");
+                                                                            }
+                                                                        });
+                                                                        snackBar.setActionTextColor(getColor(R.color.colorPrimary));
+                                                                        snackBar.show();
+
+                                                                    } else {
+                                                                        Toast.makeText(MyWishlist.this, "Some Error Occurred", Toast.LENGTH_SHORT).show();
+
+                                                                    }
+                                                                }
+                                                            });
+                                                        }
+                                                    }
+                                                });
                                             }
-                                        }
-                                        @Override
-                                        public void onCancelled(@NonNull DatabaseError error) {
 
-                                        }
-                                    });
+                                            @Override
+                                            public void onCancelled(@NonNull DatabaseError error) {
 
-
-                                    if (snapshot.child("discount").getValue(String.class) == null || snapshot.child("discount").getValue(String.class).equals("") || snapshot.child("discount").getValue(String.class).equals("0")) {
-                                        Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
-                                        holder.price.setText(format.format(new BigDecimal(snapshot.child("price").getValue(String.class))));
+                                            }
+                                        });
 
                                     } else {
-                                        double am = (Integer.valueOf(snapshot.child("price").getValue(String.class))) - (((Integer.valueOf(snapshot.child("discount").getValue(String.class))) * 0.01) * (Integer.valueOf(snapshot.child("price").getValue(String.class))));
-                                        Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
-                                        holder.price.setText(format.format(new BigDecimal(String.valueOf(am))));
+                                        Toast.makeText(MyWishlist.this, "Item Already In Cart", Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             }
+
                             @Override
                             public void onCancelled(@NonNull DatabaseError error) {
 
                             }
                         });
 
+                    }
+                });
 
 
-                        holder.move.setOnClickListener(new View.OnClickListener() {
+                holder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(MyWishlist.this, ItemDetail.class);
+                        intent.putExtra("itemid", firebaseRecyclerAdapter.getItem(position).getImage());
+                        startActivity(intent);
+                        customType(MyWishlist.this, "left-to-right");
+
+                    }
+                });
+
+                holder.remove.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MyWishlist.this);
+                        builder.setPositiveButton("Remove", new DialogInterface.OnClickListener() {
                             @Override
-                            public void onClick(final View view) {
-
-
-                                FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").addListenerForSingleValueEvent(new ValueEventListener() {
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                firebaseRecyclerAdapter.getRef(position).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
-                                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                        if (snapshot.exists()) {
-
-                                            for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                                                if (dataSnapshot.child("itemid").getValue(String.class).equals(firebaseRecyclerAdapter.getItem(position).getImage())) {
-                                                    l++;
-                                                }
-                                            }
-
-                                            if (l == 0) {
-
-
-                                                final DatabaseReference fromPath = firebaseRecyclerAdapter.getRef(position);
-                                                final DatabaseReference toPath = FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").child(UUID.randomUUID().toString());
-
-                                                fromPath.addListenerForSingleValueEvent(new ValueEventListener() {
-                                                    @Override
-                                                    public void onDataChange(DataSnapshot dataSnapshot1) {
-                                                        l = 0;
-
-
-                                                        toPath.setValue(dataSnapshot1.getValue(), new DatabaseReference.CompletionListener() {
-                                                            @Override
-                                                            public void onComplete(@androidx.annotation.Nullable final DatabaseError databaseError, @NonNull final DatabaseReference databaseReference) {
-                                                                if (databaseError != null) {
-                                                                    System.out.println("Copy failed");
-                                                                    Toast.makeText(MyWishlist.this, "Some Error Occurred", Toast.LENGTH_SHORT).show();
-                                                                } else {
-                                                                    fromPath.removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                                        @Override
-                                                                        public void onComplete(@NonNull Task<Void> task) {
-                                                                            if (task.isSuccessful()) {
-                                                                                firebaseRecyclerAdapter.notifyDataSetChanged();
-                                                                                Snackbar snackBar = Snackbar.make(constraintLayout, "Item Moved To  Cart", Snackbar.LENGTH_LONG).setAction("Go To Cart", new View.OnClickListener() {
-                                                                                    @Override
-                                                                                    public void onClick(View view) {
-                                                                                        Intent intent = new Intent(MyWishlist.this, MyCart.class);
-                                                                                        startActivity(intent);
-                                                                                        customType(MyWishlist.this, "fadein-to-fadeout");
-                                                                                    }
-                                                                                });
-                                                                                snackBar.setActionTextColor(getColor(R.color.colorPrimary));
-                                                                                snackBar.show();
-
-                                                                            } else {
-                                                                                Toast.makeText(MyWishlist.this, "Some Error Occurred", Toast.LENGTH_SHORT).show();
-
-                                                                            }
-                                                                        }
-                                                                    });
-                                                                }
-                                                            }
-                                                        });
-                                                    }
-
-                                                    @Override
-                                                    public void onCancelled(@NonNull DatabaseError error) {
-
-                                                    }
-                                                });
-
-                                            } else {
-                                                Toast.makeText(MyWishlist.this, "Item Already In Cart", Toast.LENGTH_SHORT).show();
-                                            }
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful()) {
+                                            firebaseRecyclerAdapter.notifyDataSetChanged();
+                                            Toast.makeText(MyWishlist.this, "Item Removed From Wishlist", Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Toast.makeText(MyWishlist.this, "Some error occured", Toast.LENGTH_SHORT).show();
                                         }
                                     }
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError error) {
-
-                                    }
                                 });
-
                             }
-                        });
-
-
-                        holder.remove.setOnClickListener(new View.OnClickListener() {
+                        }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                             @Override
-                            public void onClick(View view) {
-                                AlertDialog.Builder builder = new AlertDialog.Builder(MyWishlist.this);
-                                builder.setPositiveButton("Remove", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        firebaseRecyclerAdapter.getRef(position).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                if (task.isSuccessful()) {
-                                                    firebaseRecyclerAdapter.notifyDataSetChanged();
-                                                    Toast.makeText(MyWishlist.this, "Item Removed From Wishlist", Toast.LENGTH_SHORT).show();
-                                                } else {
-                                                    Toast.makeText(MyWishlist.this, "Some error occured", Toast.LENGTH_SHORT).show();
-                                                }
-                                            }
-                                        });
-                                    }
-                                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
+                            public void onClick(DialogInterface dialogInterface, int i) {
 
-                                    }
-                                }).setTitle("Remove Item From Wishlist?");
-
-                                builder.show();
                             }
-                        });
+                        }).setTitle("Remove Item From Wishlist?");
+
+                        builder.show();
+                    }
+                });
 
 
             }
@@ -317,7 +333,7 @@ public class MyWishlist extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        customType(MyWishlist.this,"fadein-to-fadeout");
+        customType(MyWishlist.this, "fadein-to-fadeout");
 
     }
 }

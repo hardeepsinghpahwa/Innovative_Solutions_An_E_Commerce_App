@@ -64,7 +64,9 @@ public class OrderPaymentStatus extends AppCompatActivity {
         vieworder.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(OrderPaymentStatus.this, MyOrders.class));
+                Intent intent=new Intent(OrderPaymentStatus.this,MyOrders.class);
+                intent.putExtra("type","ok");
+                startActivity(intent);
                 finish();
                 customType(OrderPaymentStatus.this,"fadein-to-fadeout");
             }

@@ -71,6 +71,7 @@
             android:foreground="?attr/selectableItemBackground"
             android:padding="5dp"
             android:text="Rated"
+            android:layout_marginRight="5dp"
             android:textColor="@color/white"
             android:textStyle="bold"
             android:visibility="gone"

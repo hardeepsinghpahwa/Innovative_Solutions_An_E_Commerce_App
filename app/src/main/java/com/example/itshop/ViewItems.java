@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Intent;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -111,7 +112,29 @@ public class ViewItems extends AppCompatActivity {
                     circularProgressBar.setVisibility(View.GONE);
 
                 holder.name.setText(model.getName());
-                holder.rating.setText(model.getRating());
+
+                if (model.getRating() != null && !model.getRating().equals("")) {
+                    holder.rating.setText(model.getRating());
+                    holder.rating.setVisibility(View.VISIBLE);
+
+                    FirebaseDatabase.getInstance().getReference().child("Reviews").child(firebaseRecyclerAdapter.getRef(position).getKey()).addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if(snapshot.getChildrenCount()==0)
+                            {
+                                holder.ratingnum.setText("(No ratings)");
+                            }
+                            else {
+                                holder.ratingnum.setText("("+snapshot.getChildrenCount()+" ratings"+")");
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+
+                        }
+                    });
+                }
 
 
                 if (model.getDiscount() == null || model.getDiscount().equals("") || model.getDiscount().equals("0")) {
@@ -131,7 +154,7 @@ public class ViewItems extends AppCompatActivity {
                 FirebaseDatabase.getInstance().getReference().child("Items").child(model.getImage()).child("images").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if(snapshot.exists()) {
+                        if (snapshot.exists()) {
 
                             for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                                 Glide.with(ViewItems.this).load(dataSnapshot.child("image").getValue(String.class)).into(holder.imageView);
@@ -174,7 +197,7 @@ public class ViewItems extends AppCompatActivity {
 
     private class ViewItemsViewHolder extends RecyclerView.ViewHolder {
 
-        TextView name, rating, price, discount;
+        TextView name, rating, price, discount,ratingnum;
         ImageView imageView;
 
         public ViewItemsViewHolder(@NonNull View itemView) {
@@ -185,6 +208,7 @@ public class ViewItems extends AppCompatActivity {
             price = itemView.findViewById(R.id.viewitemprice);
             name = itemView.findViewById(R.id.viewitemname);
             discount = itemView.findViewById(R.id.discount);
+            ratingnum=itemView.findViewById(R.id.ratingsnum);
         }
     }
 

@@ -505,9 +505,22 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
                             intent.putExtra("status", "success");
                             startActivity(intent);
                             customType(OrderDetails.this, "left-to-right");
-                            SendNoti sendNoti = new SendNoti();
-                            sendNoti.sendNotification(OrderDetails.this, "pj2RDmhgXEVjn3zrMaYYJ25vFvk1", "New Order", "You got a new order");
 
+                            FirebaseDatabase.getInstance().getReference().child("Admin").addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    if(snapshot.child("token").exists()) {
+                                        SendNoti sendNoti = new SendNoti();
+                                        sendNoti.sendNotification(OrderDetails.this, snapshot.child("token").getValue(String.class), "New Order", "You got a new order");
+
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {
+
+                                }
+                            });
 
                         }
                     }
@@ -529,8 +542,22 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
                             customType(OrderDetails.this, "left-to-right");
 
                         }
-                        SendNoti sendNoti = new SendNoti();
-                        sendNoti.sendNotification(OrderDetails.this, "pj2RDmhgXEVjn3zrMaYYJ25vFvk1", "New Order", "You got a new order");
+
+                        FirebaseDatabase.getInstance().getReference().child("Admin").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                if(snapshot.child("token").exists()) {
+                                    SendNoti sendNoti = new SendNoti();
+                                    sendNoti.sendNotification(OrderDetails.this, snapshot.child("token").getValue(String.class), "New Order", "You got a new order");
+
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError error) {
+
+                            }
+                        });
 
                     }
                 });
