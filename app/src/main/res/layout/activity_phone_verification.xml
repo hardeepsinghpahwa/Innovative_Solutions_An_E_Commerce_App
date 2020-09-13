@@ -32,22 +32,24 @@
             android:id="@+id/sendingcodetext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="5dp"
             android:text="Sending Verification Code..."
             android:textColor="@color/black"
-            android:textSize="20sp"
-            app:layout_constraintBottom_toBottomOf="@+id/imageView2"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="@+id/progressBar2"
+            app:layout_constraintStart_toEndOf="@+id/progressBar2" />
 
         <TextView
             android:id="@+id/textView4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="5dp"
             android:text="Verify Phone"
             android:textColor="@color/white"
             android:textSize="35sp"
             app:layout_constraintBottom_toTopOf="@+id/sendingcodetext"
-            app:layout_constraintStart_toStartOf="@+id/sendingcodetext" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ImageView
             android:id="@+id/phoneverificationback"
@@ -58,6 +60,14 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/backbutton" />
+
+        <ProgressBar
+            android:id="@+id/progressBar2"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            app:layout_constraintBottom_toBottomOf="@+id/imageView2"
+            app:layout_constraintStart_toStartOf="@+id/textView4" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -171,7 +181,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
-        android:text="Enter Code Sent to 9322836118!"
         android:textColor="@color/black"
         android:textSize="18sp"
         android:textStyle="bold"
@@ -238,7 +247,7 @@
             android:textStyle="bold"
             android:textColor="@color/white"
             android:textSize="18sp"
-            android:visibility="visible" />
+            android:visibility="gone" />
 
     </androidx.cardview.widget.CardView>
 
@@ -263,5 +272,7 @@
         app:layout_constraintBottom_toBottomOf="@+id/codesenttext"
         app:layout_constraintEnd_toStartOf="@+id/codesenttext"
         app:layout_constraintTop_toTopOf="@+id/codesenttext"
-        app:srcCompat="@drawable/check" />
+        android:src="@drawable/ic_baseline_check_circle_24"
+        />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

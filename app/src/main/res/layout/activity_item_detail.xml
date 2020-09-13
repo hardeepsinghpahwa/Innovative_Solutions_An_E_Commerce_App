@@ -278,7 +278,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="4.5"
                 android:textColor="@color/black"
                 android:textSize="30sp"
                 android:textStyle="bold"
@@ -301,6 +300,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:theme="@style/RatingBar"
+                android:isIndicator="true"
                 app:layout_constraintBottom_toBottomOf="@+id/ratingnum"
                 app:layout_constraintStart_toStartOf="@+id/ratingtext"
                 app:layout_constraintTop_toTopOf="@+id/rating" />
@@ -309,7 +309,6 @@
                 android:id="@+id/ratingnum"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="(455445 ratings)"
                 app:layout_constraintEnd_toEndOf="@+id/textView29"
                 app:layout_constraintStart_toStartOf="@+id/textView29"
                 app:layout_constraintTop_toBottomOf="@+id/textView29" />

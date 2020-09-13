@@ -5,6 +5,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -22,6 +23,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -80,6 +82,9 @@ public class Home extends AppCompatActivity
         logout = findViewById(R.id.logout);
         coordinatorLayout = findViewById(R.id.coo);
         search = findViewById(R.id.search);
+
+
+
 
         search.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -292,10 +297,30 @@ public class Home extends AppCompatActivity
         toggle.syncState();
 
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Notifications").orderByChild("read").equalTo("0").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
 
+                TextView textView= (TextView) navigationView.getMenu().findItem(R.id.notificationitem).getActionView();
+                if(snapshot.getChildrenCount()<10)
+                    textView.setText(String.valueOf(snapshot.getChildrenCount()));
+                else textView.setText("10+");
+
+                textView.setGravity(Gravity.CENTER);
+                textView.setPadding(10,5,10,5);
+                textView.setBackgroundColor(getColor(R.color.white));
+                textView.setTextColor(getColor(R.color.colorPrimary));
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        });
         View headerView = navigationView.getHeaderView(0);
 
         name = headerView.findViewById(R.id.headname);

@@ -59,12 +59,25 @@ public class Categories extends AppCompatActivity {
 
         firebaseRecyclerAdapter=new FirebaseRecyclerAdapter<itemdetails, CategoriesViewHolder>(options) {
             @Override
-            protected void onBindViewHolder(@NonNull CategoriesViewHolder holder, int position, @NonNull itemdetails model) {
+            protected void onBindViewHolder(@NonNull final CategoriesViewHolder holder, int position, @NonNull final itemdetails model) {
                 Glide.with(Categories.this).load(model.getImage()).into(holder.imageView);
-                if(position==1)
+                if(position==1) {
                     circularProgressBar.setVisibility(View.GONE);
 
-                holder.categoryname.setText(model.getName());
+                    recyclerView.scheduleLayoutAnimation();
+                }
+                    holder.categoryname.setText(model.getName());
+
+                holder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent=new Intent(Categories.this, ViewItems.class);
+                        intent.putExtra("category",model.getName());
+                        startActivity(intent);
+                        customType(Categories.this,"left-to-right");
+
+                    }
+                });
 
             }
 
@@ -108,15 +121,7 @@ public class Categories extends AppCompatActivity {
             categoryname=itemView.findViewById(R.id.categoryname);
             itemscount=itemView.findViewById(R.id.categoryitems);
 
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent=new Intent(Categories.this, ViewItems.class);
-                    startActivity(intent);
-                    customType(Categories.this,"left-to-right");
 
-                }
-            });
         }
 
     }

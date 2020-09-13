@@ -54,6 +54,7 @@ public class HomeFragment extends Fragment {
     TextView newproducts,popular;
     CircularProgressBar circularProgressBar;
     ArrayList<itemdetails> newlyadded,popularimgs;
+    CarouselView carouselView,carouselView2;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -72,6 +73,9 @@ public class HomeFragment extends Fragment {
         recyclerView = v.findViewById(R.id.homerecyclerview);
         circularProgressBar=v.findViewById(R.id.circularProgressBar);
 
+        carouselView= v.findViewById(R.id.similarproductscyview);
+        carouselView2 = v.findViewById(R.id.carousel2);
+
 
         FirebaseDatabase.getInstance().getReference().child("HomeRecyclerView").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -80,6 +84,9 @@ public class HomeFragment extends Fragment {
                 popular.setVisibility(View.VISIBLE);
                 newproducts.setVisibility(View.VISIBLE);
                 circularProgressBar.setVisibility(View.GONE);
+
+                carouselView.scheduleLayoutAnimation();
+                carouselView2.scheduleLayoutAnimation();
 
                 sliderImages=new ArrayList<>();
                 texts=new ArrayList<>();
@@ -124,7 +131,6 @@ public class HomeFragment extends Fragment {
                     newlyadded.add(itemdetails);
                 }
 
-                CarouselView carouselView = v.findViewById(R.id.similarproductscyview);
 
                 carouselView.setSize(newlyadded.size());
                 carouselView.setResource(R.layout.image_carousel_item);
@@ -209,7 +215,6 @@ public class HomeFragment extends Fragment {
                     popularimgs.add(itemdetails);
                 }
 
-                CarouselView carouselView2 = v.findViewById(R.id.carousel2);
 
                 carouselView2.setSize(popularimgs.size());
                 carouselView2.setResource(R.layout.image_carousel_item);
@@ -258,6 +263,7 @@ public class HomeFragment extends Fragment {
 
                             }
                         });
+
 
                         view.setOnClickListener(new View.OnClickListener() {
                             @Override

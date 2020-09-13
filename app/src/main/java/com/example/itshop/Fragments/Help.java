@@ -26,6 +26,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static maes.tech.intentanim.CustomIntent.customType;
 
@@ -50,19 +51,19 @@ public class Help extends AppCompatActivity {
                 button.setEnabled(false);
 
                 if (!subject.getText().toString().equals("") && !desc.getText().toString().equals("")) {
-                    progressBar.setVisibility(View.VISIBLE);
 
                     AlertDialog.Builder builder=new AlertDialog.Builder(Help.this);
                     builder.setTitle("Send Issue request");
                     builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
+                            progressBar.setVisibility(View.VISIBLE);
                             Map map = new HashMap();
                             map.put("subject", subject.getText().toString());
                             map.put("description", desc.getText().toString());
                             map.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
 
-                            FirebaseDatabase.getInstance().getReference().child("Issues").setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            FirebaseDatabase.getInstance().getReference().child("Issues").child(UUID.randomUUID().toString()).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isSuccessful()) {
@@ -71,6 +72,7 @@ public class Help extends AppCompatActivity {
                                             @Override
                                             public void onDataChange(@NonNull DataSnapshot snapshot) {
                                                 if(snapshot.child("token").exists()) {
+                                                    progressBar.setVisibility(View.GONE);
                                                     SendNoti sendNoti = new SendNoti();
                                                     sendNoti.sendNotification(Help.this, snapshot.child("token").getValue(String.class), "New Issue Request", "You have a new issue. Check it out and try to resolve it");
                                                 }
@@ -78,12 +80,14 @@ public class Help extends AppCompatActivity {
 
                                             @Override
                                             public void onCancelled(@NonNull DatabaseError error) {
+                                                progressBar.setVisibility(View.VISIBLE);
 
                                             }
                                         });
                                         subject.setText("");
                                         desc.setText("");
                                     } else {
+                                        progressBar.setVisibility(View.VISIBLE);
 
                                         Toast.makeText(Help.this, "Some error occurred", Toast.LENGTH_SHORT).show();
                                     }

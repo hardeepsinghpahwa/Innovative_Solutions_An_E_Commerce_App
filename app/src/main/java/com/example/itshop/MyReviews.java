@@ -201,6 +201,11 @@ public class MyReviews extends AppCompatActivity {
         public void onBindViewHolder(@NonNull final ReviewViewHolder holder, final int position) {
 
 
+            if(position==1)
+            {
+                recyclerView.scheduleLayoutAnimation();
+            }
+
             FirebaseDatabase.getInstance().getReference().child("Items").child(itemids.get(position)).addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {

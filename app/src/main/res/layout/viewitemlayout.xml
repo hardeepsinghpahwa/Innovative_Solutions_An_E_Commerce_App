@@ -45,6 +45,8 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginTop="5dp"
+            android:visibility="gone"
+            android:id="@+id/ll"
             >
         <TextView
             android:id="@+id/viewitemrating"

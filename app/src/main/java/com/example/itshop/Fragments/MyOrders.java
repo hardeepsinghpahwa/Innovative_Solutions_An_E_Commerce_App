@@ -113,6 +113,19 @@ public class MyOrders extends AppCompatActivity {
                 }).build();
 
         firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<orderdet, OrderViewHolder>(options) {
+
+
+            @Override
+            public int getItemCount() {
+                return super.getItemCount();
+            }
+
+            @NonNull
+            @Override
+            public orderdet getItem(int position) {
+                return super.getItem(getItemCount() - 1 - position);
+            }
+
             @Override
             protected void onBindViewHolder(@NonNull final OrderViewHolder holder, final int position, @NonNull final orderdet model) {
 
@@ -120,13 +133,19 @@ public class MyOrders extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(MyOrders.this, OrderDetailStatus.class);
-                        intent.putExtra("orderid", firebaseRecyclerAdapter.getRef(position).getKey());
+                        intent.putExtra("orderid", firebaseRecyclerAdapter.getRef(getItemCount() - 1 - position).getKey());
                         startActivity(intent);
                     }
                 });
 
+                if(position==1)
+                {
+                    recyclerView.scheduleLayoutAnimation();
 
-                firebaseRecyclerAdapter.getRef(position).child("items").addListenerForSingleValueEvent(new ValueEventListener() {
+                }
+
+
+                firebaseRecyclerAdapter.getRef(getItemCount() - 1 - position).child("items").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
@@ -177,24 +196,24 @@ public class MyOrders extends AppCompatActivity {
                 });
 
 
-                FirebaseDatabase.getInstance().getReference().child("Active Orders").child(firebaseRecyclerAdapter.getRef(position).getKey()).child("tracking").addValueEventListener(new ValueEventListener() {
+                FirebaseDatabase.getInstance().getReference().child("Active Orders").child(firebaseRecyclerAdapter.getRef(getItemCount() - 1 - position).getKey()).child("tracking").addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (snapshot.exists()) {
                             for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                                 if (dataSnapshot.child("text").getValue(String.class).equals("Delivered")) {
-                                    Log.i("orderid", firebaseRecyclerAdapter.getRef(position).getKey());
+                                    Log.i("orderid", firebaseRecyclerAdapter.getRef(getItemCount() - 1 - position).getKey());
                                     FirebaseDatabase.getInstance().getReference().child("Reviews").addValueEventListener(new ValueEventListener() {
                                         @Override
                                         public void onDataChange(@NonNull final DataSnapshot snapshot1) {
 
-                                            FirebaseDatabase.getInstance().getReference().child("Active Orders").child(firebaseRecyclerAdapter.getRef(position).getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            FirebaseDatabase.getInstance().getReference().child("Active Orders").child(firebaseRecyclerAdapter.getRef(getItemCount() - 1 - position).getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
                                                 @Override
                                                 public void onDataChange(@NonNull final DataSnapshot snapshot) {
 
                                                     if(snapshot.exists())
                                                     {
-                                                    snapshot.getRef().child("items").addListenerForSingleValueEvent(new ValueEventListener() {
+                                                    snapshot.getRef().child("items").addValueEventListener(new ValueEventListener() {
                                                         @Override
                                                         public void onDataChange(@NonNull DataSnapshot snapshot) {
 
@@ -298,7 +317,7 @@ public class MyOrders extends AppCompatActivity {
 
                         recyclerView1 = dialog.findViewById(R.id.raterecyview);
 
-                        FirebaseDatabase.getInstance().getReference().child("Active Orders").child(firebaseRecyclerAdapter.getRef(position).getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
+                        FirebaseDatabase.getInstance().getReference().child("Active Orders").child(firebaseRecyclerAdapter.getRef(getItemCount() - 1 - position).getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull final DataSnapshot snapshot) {
                                 if(snapshot.exists())
@@ -350,8 +369,9 @@ public class MyOrders extends AppCompatActivity {
         };
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MyOrders.this);
-        linearLayoutManager.setReverseLayout(true);
-        recyclerView.setLayoutManager(linearLayoutManager);
+    /*    linearLayoutManager.setReverseLayout(true);
+        linearLayoutManager.setStackFromEnd(true);
+   */     recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(firebaseRecyclerAdapter);
     }
 
@@ -433,7 +453,7 @@ public class MyOrders extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull final ItemViewHolder holder, final int position) {
 
-            FirebaseDatabase.getInstance().getReference().child("Items").child(itemids.get(position)).addListenerForSingleValueEvent(new ValueEventListener() {
+            FirebaseDatabase.getInstance().getReference().child("Items").child(itemids.get(getItemCount() - 1 - position)).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
 
@@ -444,7 +464,7 @@ public class MyOrders extends AppCompatActivity {
 
                     holder.circularProgressBar.setVisibility(View.GONE);
 
-                    FirebaseDatabase.getInstance().getReference().child("Reviews").child(itemids.get(position)).addListenerForSingleValueEvent(new ValueEventListener() {
+                    FirebaseDatabase.getInstance().getReference().child("Reviews").child(itemids.get(getItemCount() - 1 - position)).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot snapshot) {
                             if(snapshot.exists()) {
@@ -519,13 +539,13 @@ public class MyOrders extends AppCompatActivity {
                                     map.put("rating", String.valueOf(holder.ratingBar.getRating()));
                                     map.put("review", rev);
 
-                                    FirebaseDatabase.getInstance().getReference().child("Reviews").child(itemids.get(position)).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).updateChildren(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    FirebaseDatabase.getInstance().getReference().child("Reviews").child(itemids.get(getItemCount() - 1 - position)).child(FirebaseAuth.getInstance().getCurrentUser().getUid()).updateChildren(map).addOnCompleteListener(new OnCompleteListener<Void>() {
                                         @Override
                                         public void onComplete(@NonNull Task<Void> task) {
                                             if (task.isSuccessful()) {
                                                 rat= Double.valueOf(0);
 
-                                                FirebaseDatabase.getInstance().getReference().child("Reviews").child(itemids.get(position)).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                FirebaseDatabase.getInstance().getReference().child("Reviews").child(itemids.get(getItemCount() - 1 - position)).addListenerForSingleValueEvent(new ValueEventListener() {
                                                     @Override
                                                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                                                         if(snapshot.exists())
@@ -537,7 +557,7 @@ public class MyOrders extends AppCompatActivity {
 
                                                         Map map1=new HashMap();
                                                         map1.put("rating",String.valueOf(rat/snapshot.getChildrenCount()));
-                                                        FirebaseDatabase.getInstance().getReference().child("Items").child(itemids.get(position)).updateChildren(map1).addOnCompleteListener(new OnCompleteListener() {
+                                                        FirebaseDatabase.getInstance().getReference().child("Items").child(itemids.get(getItemCount() - 1 - position)).updateChildren(map1).addOnCompleteListener(new OnCompleteListener() {
                                                             @Override
                                                             public void onComplete(@NonNull Task task) {
                                                                 if(task.isSuccessful())

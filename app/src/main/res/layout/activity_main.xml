@@ -62,6 +62,7 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="70dp"
         android:layout_marginEnd="10dp"
+        android:visibility="gone"
         android:layout_marginBottom="70dp"
         app:layout_constraintBottom_toTopOf="@+id/phonenumber"
         app:layout_constraintEnd_toEndOf="parent"
@@ -128,6 +129,19 @@
 
     </androidx.cardview.widget.CardView>
 
+    <ImageView
+        android:id="@+id/imageView5"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="80dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginEnd="80dp"
+        android:layout_marginBottom="100dp"
+        android:src="@drawable/homeicon"
+        app:layout_constraintBottom_toTopOf="@+id/phonenumber"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

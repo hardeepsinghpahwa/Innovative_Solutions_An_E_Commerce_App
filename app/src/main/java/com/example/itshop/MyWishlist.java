@@ -107,6 +107,10 @@ public class MyWishlist extends AppCompatActivity {
             @Override
             protected void onBindViewHolder(@NonNull final CartViewHolder holder, final int position, @NonNull final itemdetails model) {
 
+                if(position==1)
+                {
+                    recyclerView.scheduleLayoutAnimation();
+                }
 
                 FirebaseDatabase.getInstance().getReference().child("Items").child(model.getImage()).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override

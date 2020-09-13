@@ -56,7 +56,7 @@ public class PhoneVerification extends AppCompatActivity {
     TextView proceed,didnotget;
     ConstraintLayout constraintLayout;
     ImageView check,back;
-    ProgressBar progressBar;
+    ProgressBar progressBar,progressBar2;
     PhoneAuthProvider.ForceResendingToken resendotp;
     PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallBacks;
 
@@ -82,8 +82,8 @@ public class PhoneVerification extends AppCompatActivity {
         sendingverifcationtext = findViewById(R.id.sendingcodetext);
         constraintLayout = findViewById(R.id.cons2);
         progressBar=findViewById(R.id.phoneverificationprogressBar);
-        codesentto.setText("Enter code sent to " +phone);
         back=findViewById(R.id.phoneverificationback);
+        progressBar2=findViewById(R.id.progressBar2);
 
         back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -178,8 +178,9 @@ public class PhoneVerification extends AppCompatActivity {
                 v_id = s;
                 resendotp = forceResendingToken;
 
-
+                progressBar2.setVisibility(View.GONE);
                 sendingverifcationtext.setText("Verification Code Sent");
+                codesentto.setText("Enter code sent to " +phone);
 
                 code1.setEnabled(true);
                 code2.setEnabled(true);
@@ -461,7 +462,6 @@ public class PhoneVerification extends AppCompatActivity {
                             codesentto.setText("OTP VERIFIED");
                             codesentto.setTextColor(getColor(R.color.green));
                             check.setVisibility(View.VISIBLE);
-                            codesentto.setTextColor(getColor(R.color.colorPrimary));
                             didnotget.setVisibility(View.GONE);
                             resend.setVisibility(View.GONE);
                             proceed.setVisibility(View.VISIBLE);

@@ -16,7 +16,12 @@
         android:supportsRtl="true"
         android:theme="@style/NoBarAppTheme"
         tools:targetApi="q">
-        <activity android:name=".MyReviews"></activity>
+        <activity android:name=".SplashScreen"><intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter></activity>
+        <activity android:name=".MyReviews" />
         <activity android:name=".CancelReturnReplace" />
         <activity android:name=".OrderDetailStatus" />
         <activity android:name=".OrderPaymentStatus" />
@@ -51,11 +56,12 @@
         <activity android:name=".PhoneVerification" />
         <activity
             android:name=".MainActivity"
-            android:windowSoftInputMode="stateVisible|adjustPan">
+            android:windowSoftInputMode="stateVisible|adjustResize">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.ALTERNATIVE" />
             </intent-filter>
         </activity>
 
