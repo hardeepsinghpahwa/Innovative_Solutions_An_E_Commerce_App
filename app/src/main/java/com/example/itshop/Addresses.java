@@ -10,8 +10,10 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -55,6 +57,7 @@ public class Addresses extends AppCompatActivity {
     CircularProgressBar circularProgressBar;
     ImageView noaddresses;
     int posi = 0;
+    NetworkBroadcast networkBroadcast;
     ImageView back;
     ArrayList<String> ids,quans;
     String total,itemid;
@@ -474,12 +477,18 @@ public class Addresses extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         firebaseRecyclerAdapter.stopListening();
+        this.unregisterReceiver(networkBroadcast);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         firebaseRecyclerAdapter.startListening();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast=new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
+
     }
 
     @Override

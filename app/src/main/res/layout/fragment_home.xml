@@ -23,7 +23,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollView2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -42,13 +42,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="130dp"
                 android:layout_marginTop="20dp"
+                android:layoutAnimation="@anim/recyviewanimation"
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:sliderAnimationDuration="600"
                 app:sliderAutoCycleDirection="back_and_forth"
-                android:layoutAnimation="@anim/recyviewanimation"
                 app:sliderIndicatorAnimationDuration="600"
                 app:sliderIndicatorGravity="center_horizontal|bottom"
                 app:sliderIndicatorMargin="15dp"
@@ -71,7 +71,7 @@
                 android:textStyle="bold"
                 android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/homerecyclerview" />
+                app:layout_constraintTop_toBottomOf="@+id/customcarousel2" />
 
 
             <TextView
@@ -86,7 +86,67 @@
                 android:textStyle="bold"
                 android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/similarproductscyview" />
+                app:layout_constraintTop_toBottomOf="@+id/carousel1" />
+
+            <TextView
+                android:id="@+id/customtext1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="20dp"
+                android:text="Custom 1"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/homerecyclerview" />
+
+            <TextView
+                android:id="@+id/customtext2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="20dp"
+                android:text="Custom 2"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/customcarousel1" />
+
+            <com.jama.carouselview.CarouselView
+                android:id="@+id/customcarousel2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layoutAnimation="@anim/layout_lefttoright"
+                app:enableSnapping="true"
+                android:visibility="gone"
+                app:layout_constraintTop_toBottomOf="@id/customtext2"
+                app:resource="@layout/image_carousel_item"
+                app:scaleOnScroll="false"
+                app:spacing="10" />
+
+            <com.jama.carouselview.CarouselView
+                android:id="@+id/customcarousel1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layoutAnimation="@anim/layout_lefttoright"
+                app:enableSnapping="true"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/customtext1"
+                app:resource="@layout/image_carousel_item"
+                app:scaleOnScroll="false"
+                app:spacing="10">
+
+            </com.jama.carouselview.CarouselView>
+
 
             <com.jama.carouselview.CarouselView
                 android:id="@+id/carousel2"
@@ -105,14 +165,14 @@
                 app:spacing="10" />
 
             <com.jama.carouselview.CarouselView
-                android:id="@+id/similarproductscyview"
+                android:id="@+id/carousel1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginEnd="10dp"
-                app:enableSnapping="true"
                 android:layoutAnimation="@anim/layout_lefttoright"
+                app:enableSnapping="true"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/newproductstext"
@@ -122,5 +182,5 @@
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

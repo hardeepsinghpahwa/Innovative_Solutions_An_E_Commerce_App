@@ -9,7 +9,9 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -59,6 +61,7 @@ public class SetupProfile extends AppCompatActivity {
     Animation shake;
     Uri image;
     String phone;
+    NetworkBroadcast networkBroadcast;
     ScrollView scrollView;
     ImageView cross;
     String type;
@@ -403,5 +406,22 @@ public class SetupProfile extends AppCompatActivity {
                 profilepic.setImageURI(image);
             }
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast=new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        this.unregisterReceiver(networkBroadcast);
     }
 }

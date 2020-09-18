@@ -8,7 +8,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Paint;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -48,6 +51,7 @@ public class ViewItems extends AppCompatActivity {
     TextView title, itemsincart;
     ImageView back;
     RelativeLayout cart;
+    NetworkBroadcast networkBroadcast;
     String cat;
     FirebaseRecyclerAdapter<itemdetails, ViewItemsViewHolder> firebaseRecyclerAdapter;
     FirebaseRecyclerPagingAdapter<itemdetails, ViewItemsViewHolder> firebaseRecyclerAdapter1;
@@ -70,30 +74,41 @@ public class ViewItems extends AppCompatActivity {
         cart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(ViewItems.this, MyCart.class);
-                startActivity(intent);
-                customType(ViewItems.this, "fadein-to-fadeout");
 
-            }
-        });
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
 
-        FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    itemsincart.setText(String.valueOf(snapshot.getChildrenCount()));
+                    Intent intent = new Intent(ViewItems.this, MyCart.class);
+                    startActivity(intent);
+                    customType(ViewItems.this, "fadein-to-fadeout");
+
+
                 } else {
-                    itemsincart.setText("0");
+                    startActivity(new Intent(ViewItems.this, MainActivity.class));
+                    customType(ViewItems.this, "fadein-to-fadeout");
+                    Toast.makeText(ViewItems.this, "You must log in first", Toast.LENGTH_SHORT).show();
                 }
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
         });
 
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
 
+            FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        itemsincart.setText(String.valueOf(snapshot.getChildrenCount()));
+                    } else {
+                        itemsincart.setText("0");
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+
+        }
 
         back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -106,7 +121,7 @@ public class ViewItems extends AppCompatActivity {
         DatabaseReference databaseReference=FirebaseDatabase.getInstance().getReference().child("Items");
 
         databaseReference.orderByChild("category").equalTo(cat);
-        Query query = query=databaseReference.orderByChild("category").equalTo(cat);
+        Query query = databaseReference.orderByChild("category").equalTo(cat);
 
         FirebaseRecyclerOptions<itemdetails> options = new FirebaseRecyclerOptions.Builder<itemdetails>()
                 .setQuery(query, new SnapshotParser<itemdetails>() {
@@ -234,7 +249,7 @@ public class ViewItems extends AppCompatActivity {
             protected void onBindViewHolder(@NonNull final ViewItemsViewHolder holder, final int position, @NonNull final itemdetails model) {
 
 
-                if (position == 1) {
+                if (position == 0) {
                     circularProgressBar.setVisibility(View.GONE);
                     recyclerView.scheduleLayoutAnimation();
                 }
@@ -351,15 +366,19 @@ public class ViewItems extends AppCompatActivity {
         super.onResume();
         firebaseRecyclerAdapter.startListening();
         firebaseRecyclerAdapter1.startListening();
-
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast=new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         firebaseRecyclerAdapter.stopListening();
-        firebaseRecyclerAdapter1.startListening();
+        firebaseRecyclerAdapter1.stopListening();
 
+        this.unregisterReceiver(networkBroadcast);
 
     }
 

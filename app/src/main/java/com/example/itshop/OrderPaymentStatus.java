@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -20,6 +22,7 @@ public class OrderPaymentStatus extends AppCompatActivity {
     LottieAnimationView lottieAnimationView;
     String status;
     ImageView imageView;
+    NetworkBroadcast networkBroadcast;
 
 
     @Override
@@ -78,5 +81,21 @@ public class OrderPaymentStatus extends AppCompatActivity {
         super.onBackPressed();
         startActivity(new Intent(OrderPaymentStatus.this,Home.class));
         customType(OrderPaymentStatus.this,"fadein-to-fadeout");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast=new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.unregisterReceiver(networkBroadcast);
     }
 }

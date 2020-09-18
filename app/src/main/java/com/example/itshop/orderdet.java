@@ -1,6 +1,14 @@
 package com.example.itshop;
 
-public class orderdet {
+import android.text.format.DateFormat;
+
+import com.example.itshop.Notifications.Data;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
+public class orderdet{
 
     String name,address,delivery,discount,phone,price,total,userid,itemid,status,email,timestamp,orderid;
 
@@ -115,4 +123,11 @@ public class orderdet {
     public void setUserid(String userid) {
         this.userid = userid;
     }
+
+    public orderdet(String status, String timestamp, String orderid) {
+        this.status = status;
+        this.timestamp = timestamp;
+        this.orderid = orderid;
+    }
+
 }

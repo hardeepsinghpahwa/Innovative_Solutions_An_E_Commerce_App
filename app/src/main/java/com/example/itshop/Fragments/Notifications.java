@@ -5,6 +5,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.example.itshop.NetworkBroadcast;
 import com.example.itshop.R;
 import com.example.itshop.itemdetails;
 import com.example.itshop.notiitem;
@@ -39,6 +43,7 @@ public class Notifications extends AppCompatActivity {
     ImageView nonotis,back;
     TextView markasread;
     RecyclerView recyclerView;
+    NetworkBroadcast networkBroadcast;
     CircularProgressBar circularProgressBar;
     FirebaseRecyclerAdapter<notiitem,NotiViewHolder>firebaseRecyclerAdapter;
 
@@ -195,12 +200,18 @@ public class Notifications extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         firebaseRecyclerAdapter.stopListening();
+        this.unregisterReceiver(networkBroadcast);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         firebaseRecyclerAdapter.startListening();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast=new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
+
     }
 
 }

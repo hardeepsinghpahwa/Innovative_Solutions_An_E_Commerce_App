@@ -7,8 +7,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -50,6 +52,7 @@ public class MyReviews extends AppCompatActivity {
     ImageView back,noratings;
     ArrayList<String>ids;
     Double rat;
+    NetworkBroadcast networkBroadcast;
     ArrayList<itemreview> reviews;
     CircularProgressBar circularProgressBar;
 
@@ -505,6 +508,21 @@ public class MyReviews extends AppCompatActivity {
             progressBar = itemView.findViewById(R.id.progressbar);
         }
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast=new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.unregisterReceiver(networkBroadcast);
     }
 
     @Override

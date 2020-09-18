@@ -41,6 +41,11 @@
             android:icon="@drawable/help"
             android:title="Help" />
 
+        <item
+            android:id="@+id/policiesitem"
+            android:icon="@drawable/policy"
+            android:title="Policies" />
+
     </group>
 
 

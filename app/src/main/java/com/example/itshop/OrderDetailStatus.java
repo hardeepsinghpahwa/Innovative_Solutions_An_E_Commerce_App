@@ -14,10 +14,12 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -60,6 +62,7 @@ public class OrderDetailStatus extends AppCompatActivity {
     CircularProgressBar circularProgressBar;
     CardView can,retu,repl;
     ImageView back;
+    NetworkBroadcast networkBroadcast;
     Format format = NumberFormat.getCurrencyInstance(new Locale("en", "in"));
 
     @Override
@@ -626,5 +629,21 @@ public class OrderDetailStatus extends AppCompatActivity {
         super.onBackPressed();
         customType(OrderDetailStatus.this,"right-to-left");
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast=new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.unregisterReceiver(networkBroadcast);
     }
 }

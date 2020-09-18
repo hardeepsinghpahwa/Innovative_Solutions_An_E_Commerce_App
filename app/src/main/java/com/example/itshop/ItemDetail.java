@@ -14,9 +14,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -85,6 +87,7 @@ public class ItemDetail extends AppCompatActivity {
     RatingBar ratingBar;
     List<itemdetails> iteminfo;
     LikeButton fav;
+    NetworkBroadcast networkBroadcast;
     TextView specifications, stock;
     NestedScrollView nestedScrollView;
     ImageView back;
@@ -275,10 +278,11 @@ public class ItemDetail extends AppCompatActivity {
                 if (model.getRating() != null)
                     holder.review.setText(model.getReview());
 
-                if (model.getUid().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
-                    holder.edit.setVisibility(View.VISIBLE);
+                if(FirebaseAuth.getInstance().getCurrentUser()!=null) {
+                    if (model.getUid().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                        holder.edit.setVisibility(View.VISIBLE);
+                    }
                 }
-
                 holder.edit.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -339,9 +343,18 @@ public class ItemDetail extends AppCompatActivity {
         cart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(ItemDetail.this, MyCart.class);
-                startActivity(intent);
-                customType(ItemDetail.this, "fadein-to-fadeout");
+
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+
+                    Intent intent = new Intent(ItemDetail.this, MyCart.class);
+                    startActivity(intent);
+                    customType(ItemDetail.this, "fadein-to-fadeout");
+
+                } else {
+                    startActivity(new Intent(ItemDetail.this, MainActivity.class));
+                    customType(ItemDetail.this, "fadein-to-fadeout");
+                    Toast.makeText(ItemDetail.this, "You must log in first", Toast.LENGTH_SHORT).show();
+                }
 
             }
         });
@@ -364,50 +377,54 @@ public class ItemDetail extends AppCompatActivity {
             }
         });
 
-        FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Favourites").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                fav.setEnabled(true);
-                if (snapshot.exists()) {
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                        if (dataSnapshot.child("itemid").getValue(String.class).equals(itemid)) {
-                            fav.setLiked(true);
+        if(FirebaseAuth.getInstance().getCurrentUser()!=null) {
+            FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Favourites").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    fav.setEnabled(true);
+                    if (snapshot.exists()) {
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            if (dataSnapshot.child("itemid").getValue(String.class).equals(itemid)) {
+                                fav.setLiked(true);
+                            }
                         }
                     }
                 }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
 
-            }
-        });
-
-
-        FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    itemsincart.setText(String.valueOf(snapshot.getChildrenCount()));
-                } else {
-                    itemsincart.setText("0");
                 }
-            }
+            });
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
 
-            }
-        });
+            FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        itemsincart.setText(String.valueOf(snapshot.getChildrenCount()));
+                    } else {
+                        itemsincart.setText("0");
+                    }
+                }
 
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+        }
 
         addtocart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                i = 0;
-                FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+
+                    i = 0;
+                    FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
 
                             for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                                 if (dataSnapshot.child("itemid").getValue(String.class).equals(itemid)) {
@@ -436,11 +453,18 @@ public class ItemDetail extends AppCompatActivity {
                             }
                         }
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
 
-                    }
-                });
+                        }
+                    });
+
+                } else {
+                    startActivity(new Intent(ItemDetail.this, MainActivity.class));
+                    customType(ItemDetail.this, "fadein-to-fadeout");
+                    Toast.makeText(ItemDetail.this, "You must log in first", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
 
@@ -459,14 +483,22 @@ public class ItemDetail extends AppCompatActivity {
             @Override
             public void liked(LikeButton likeButton) {
 
-                FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Favourites").child(UUID.randomUUID().toString()).child("itemid").setValue(itemid).addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Toast.makeText(ItemDetail.this, "Added Into WishList", Toast.LENGTH_SHORT).show();
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
 
-                    }
-                });
+                    FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Favourites").child(UUID.randomUUID().toString()).child("itemid").setValue(itemid).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Toast.makeText(ItemDetail.this, "Added Into WishList", Toast.LENGTH_SHORT).show();
 
+                        }
+                    });
+
+                }
+                else {
+                    startActivity(new Intent(ItemDetail.this, MainActivity.class));
+                    customType(ItemDetail.this, "fadein-to-fadeout");
+                    Toast.makeText(ItemDetail.this, "You must log in first", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
@@ -672,12 +704,21 @@ public class ItemDetail extends AppCompatActivity {
                     buynow.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Intent intent = new Intent(ItemDetail.this, Addresses.class);
-                            intent.putExtra("price", snapshot.child("price").getValue(String.class));
-                            intent.putExtra("itemid", itemid);
-                            intent.putExtra("total", total);
-                            startActivity(intent);
-                            customType(ItemDetail.this, "left-to-right");
+
+                            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                                Intent intent = new Intent(ItemDetail.this, Addresses.class);
+                                intent.putExtra("price", snapshot.child("price").getValue(String.class));
+                                intent.putExtra("itemid", itemid);
+                                intent.putExtra("total", total);
+                                startActivity(intent);
+                                customType(ItemDetail.this, "left-to-right");
+                            } else {
+                                startActivity(new Intent(ItemDetail.this, MainActivity.class));
+                                customType(ItemDetail.this, "fadein-to-fadeout");
+                                Toast.makeText(ItemDetail.this, "You must log in first", Toast.LENGTH_SHORT).show();
+                            }
+
+
                         }
                     });
 
@@ -898,12 +939,18 @@ public class ItemDetail extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         firebaseRecyclerAdapter.stopListening();
+        this.unregisterReceiver(networkBroadcast);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         firebaseRecyclerAdapter.startListening();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast = new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
+
     }
 
     private class ItemsAdapter extends RecyclerView.Adapter<ItemViewHolder> {

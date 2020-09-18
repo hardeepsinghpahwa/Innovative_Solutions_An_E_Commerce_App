@@ -17,12 +17,15 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -35,6 +38,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
@@ -44,6 +48,7 @@ import com.example.itshop.Fragments.Help;
 import com.example.itshop.Fragments.HomeFragment;
 import com.example.itshop.Fragments.MyOrders;
 import com.example.itshop.Fragments.Notifications;
+import com.example.itshop.Fragments.Policies;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -70,20 +75,20 @@ public class Home extends AppCompatActivity
     TextView itemsincart, logout;
     CoordinatorLayout coordinatorLayout;
     TextView search;
+    NetworkBroadcast networkBroadcast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+        Toolbar toolbar =  findViewById(R.id.toolbar);
 
         itemsincart = findViewById(R.id.itemsincart);
         logout = findViewById(R.id.logout);
         coordinatorLayout = findViewById(R.id.coo);
         search = findViewById(R.id.search);
-
-
 
 
         search.setOnClickListener(new View.OnClickListener() {
@@ -207,7 +212,7 @@ public class Home extends AppCompatActivity
             @Override
             public void onClick(View view) {
 
-                AlertDialog.Builder builder=new AlertDialog.Builder(Home.this);
+                AlertDialog.Builder builder = new AlertDialog.Builder(Home.this);
                 builder.setTitle("Are you sure you want to log out");
                 builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
@@ -241,28 +246,38 @@ public class Home extends AppCompatActivity
         cart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(Home.this, MyCart.class);
-                startActivity(intent);
-                customType(Home.this, "fadein-to-fadeout");
 
-            }
-        });
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
 
-        FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    itemsincart.setText(String.valueOf(snapshot.getChildrenCount()));
+                    Intent intent = new Intent(Home.this, MyCart.class);
+                    startActivity(intent);
+                    customType(Home.this, "fadein-to-fadeout");
+
                 } else {
-                    itemsincart.setText("0");
+                    startActivity(new Intent(Home.this, MainActivity.class));
+                    customType(Home.this, "fadein-to-fadeout");
+                    Toast.makeText(Home.this, "You must log in first", Toast.LENGTH_SHORT).show();
                 }
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-
-            }
         });
+
+        if(FirebaseAuth.getInstance().getCurrentUser()!=null) {
+            FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        itemsincart.setText(String.valueOf(snapshot.getChildrenCount()));
+                    } else {
+                        itemsincart.setText("0");
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         final LinearLayout holder = findViewById(R.id.holder);
@@ -300,50 +315,65 @@ public class Home extends AppCompatActivity
         final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Notifications").orderByChild("read").equalTo("0").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+        if(FirebaseAuth.getInstance().getCurrentUser()!=null) {
+            FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Notifications").orderByChild("read").equalTo("0").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                TextView textView= (TextView) navigationView.getMenu().findItem(R.id.notificationitem).getActionView();
-                if(snapshot.getChildrenCount()<10)
-                    textView.setText(String.valueOf(snapshot.getChildrenCount()));
-                else textView.setText("10+");
+                    TextView textView = (TextView) navigationView.getMenu().findItem(R.id.notificationitem).getActionView();
+                    if (snapshot.getChildrenCount() < 10)
+                        textView.setText(String.valueOf(snapshot.getChildrenCount()));
+                    else textView.setText("10+");
 
-                textView.setGravity(Gravity.CENTER);
-                textView.setPadding(10,5,10,5);
-                textView.setBackgroundColor(getColor(R.color.white));
-                textView.setTextColor(getColor(R.color.colorPrimary));
+                    textView.setGravity(Gravity.CENTER);
+                    textView.setPadding(10, 5, 10, 5);
+                    textView.setBackgroundColor(getColor(R.color.white));
+                    textView.setTextColor(getColor(R.color.colorPrimary));
 
-            }
+                }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
 
-            }
-        });
+                }
+            });
+
+        }
         View headerView = navigationView.getHeaderView(0);
 
         name = headerView.findViewById(R.id.headname);
         propic = headerView.findViewById(R.id.headpropic);
         email = headerView.findViewById(R.id.heademail);
 
+        if(FirebaseAuth.getInstance().getCurrentUser()!=null) {
+            FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        name.setText(snapshot.child("name").getValue(String.class));
+                        email.setText(snapshot.child("email").getValue(String.class));
 
-        FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    name.setText(snapshot.child("name").getValue(String.class));
-                    email.setText(snapshot.child("email").getValue(String.class));
-
-                    Glide.with(Home.this).load(snapshot.child("profilepic").getValue(String.class)).into(propic);
+                        Glide.with(Home.this).load(snapshot.child("profilepic").getValue(String.class)).into(propic);
+                    }
                 }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
 
-            }
-        });
+                }
+            });
+        }
+        else {
+            name.setText("Sign In");
+            name.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent=new Intent(Home.this,MainActivity.class);
+                    startActivity(intent);
+                    customType(Home.this,"fadein-to-fadeout");
+                }
+            });
+        }
     }
 
     @Override
@@ -381,32 +411,75 @@ public class Home extends AppCompatActivity
                 break;
 
             case R.id.notificationitem:
-                intent = new Intent(Home.this, Notifications.class);
-                startActivity(intent);
-                customType(Home.this, "fadein-to-fadeout");
+
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+
+                    intent = new Intent(Home.this, Notifications.class);
+                    startActivity(intent);
+                    customType(Home.this, "fadein-to-fadeout");
+                } else {
+                    startActivity(new Intent(Home.this, MainActivity.class));
+                    customType(Home.this, "fadein-to-fadeout");
+                    Toast.makeText(this, "You must log in first", Toast.LENGTH_SHORT).show();
+                }
                 break;
 
 
             case R.id.helpitem:
-                intent = new Intent(Home.this, Help.class);
-                startActivity(intent);
-                customType(Home.this, "fadein-to-fadeout");
+
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+
+                    intent = new Intent(Home.this, Help.class);
+                    startActivity(intent);
+                    customType(Home.this, "fadein-to-fadeout");
+                } else {
+                    startActivity(new Intent(Home.this, MainActivity.class));
+                    customType(Home.this, "fadein-to-fadeout");
+                    Toast.makeText(this, "You must log in first", Toast.LENGTH_SHORT).show();
+                }
                 break;
 
             case R.id.myaccountitem:
-                intent = new Intent(Home.this, MyAccount.class);
-                startActivity(intent);
-                customType(Home.this, "fadein-to-fadeout");
+
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+
+                    intent = new Intent(Home.this, MyAccount.class);
+                    startActivity(intent);
+                    customType(Home.this, "fadein-to-fadeout");
+                } else {
+                    startActivity(new Intent(Home.this, MainActivity.class));
+                    customType(Home.this, "fadein-to-fadeout");
+                    Toast.makeText(this, "You must log in first", Toast.LENGTH_SHORT).show();
+                }
                 break;
 
             case R.id.myordersitem:
-                intent = new Intent(Home.this, MyOrders.class);
-                startActivity(intent);
-                customType(Home.this, "fadein-to-fadeout");
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+
+                    intent = new Intent(Home.this, MyOrders.class);
+                    startActivity(intent);
+                    customType(Home.this, "fadein-to-fadeout");
+                } else {
+                    startActivity(new Intent(Home.this, MainActivity.class));
+                    customType(Home.this, "fadein-to-fadeout");
+                    Toast.makeText(this, "You must log in first", Toast.LENGTH_SHORT).show();
+                }
                 break;
 
             case R.id.mywishlist:
-                intent = new Intent(Home.this, MyWishlist.class);
+                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                    intent = new Intent(Home.this, MyWishlist.class);
+                    startActivity(intent);
+                    customType(Home.this, "fadein-to-fadeout");
+                } else {
+                    startActivity(new Intent(Home.this, MainActivity.class));
+                    customType(Home.this, "fadein-to-fadeout");
+                    Toast.makeText(this, "You must log in first", Toast.LENGTH_SHORT).show();
+                }
+                break;
+
+            case R.id.policiesitem:
+                intent = new Intent(Home.this, Policies.class);
                 startActivity(intent);
                 customType(Home.this, "fadein-to-fadeout");
                 break;
@@ -425,8 +498,17 @@ public class Home extends AppCompatActivity
         super.onResume();
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.getMenu().getItem(0).setChecked(true);
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast = new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.unregisterReceiver(networkBroadcast);
+    }
 
     private class ItemAdapter extends RecyclerView.Adapter<ViewItemsViewHolder> {
 
@@ -530,10 +612,12 @@ public class Home extends AppCompatActivity
             name = itemView.findViewById(R.id.viewitemname);
             discount = itemView.findViewById(R.id.discount);
         }
+
     }
 
     public void hideKeyboard(View view) {
         InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
+
 }

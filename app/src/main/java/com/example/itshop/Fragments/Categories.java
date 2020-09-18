@@ -7,6 +7,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.example.itshop.NetworkBroadcast;
 import com.example.itshop.R;
 import com.example.itshop.ViewItems;
 import com.example.itshop.itemdetails;
@@ -34,6 +37,7 @@ public class Categories extends AppCompatActivity {
     ImageView back;
     FirebaseRecyclerAdapter<itemdetails,CategoriesViewHolder> firebaseRecyclerAdapter;
     CircularProgressBar circularProgressBar;
+    NetworkBroadcast networkBroadcast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,6 +136,10 @@ public class Categories extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         firebaseRecyclerAdapter.startListening();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast=new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
 
     }
 
@@ -140,7 +148,7 @@ public class Categories extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         firebaseRecyclerAdapter.stopListening();
-
+        this.unregisterReceiver(networkBroadcast);
     }
 
 }

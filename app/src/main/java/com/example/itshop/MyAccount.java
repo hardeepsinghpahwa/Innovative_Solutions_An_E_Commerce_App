@@ -4,7 +4,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -24,11 +28,12 @@ import static maes.tech.intentanim.CustomIntent.customType;
 
 public class MyAccount extends AppCompatActivity {
 
-    TextView name,email,phone,myorders,myaddresses,mywishlist,myreviews;
+    TextView name,email,phone,myorders,myaddresses,mywishlist,myreviews,logout;
     ImageView profilepic,edit;
     CircularProgressBar circularProgressBar;
     CardView cardView;
     ImageView back;
+    NetworkBroadcast networkBroadcast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +52,37 @@ public class MyAccount extends AppCompatActivity {
         circularProgressBar=findViewById(R.id.circularProgressBar);
         cardView=findViewById(R.id.cardView14);
         back=findViewById(R.id.back);
+        logout=findViewById(R.id.logout);
+
+
+        logout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                AlertDialog.Builder builder=new AlertDialog.Builder(MyAccount.this);
+                builder.setTitle("Are you sure you want to log out");
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                }).setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        FirebaseAuth.getInstance().signOut();
+                        Intent intent = new Intent(MyAccount.this, MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                        startActivity(intent);
+                    }
+                });
+
+                builder.show();
+            }
+        });
+
 
         back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -143,5 +179,21 @@ public class MyAccount extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         customType(MyAccount.this,"fadein-to-fadeout");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast=new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.unregisterReceiver(networkBroadcast);
     }
 }

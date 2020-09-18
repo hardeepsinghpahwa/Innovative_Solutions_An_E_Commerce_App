@@ -9,6 +9,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -51,6 +53,7 @@ public class MyWishlist extends AppCompatActivity {
     RecyclerView recyclerView;
     ConstraintLayout constraintLayout;
     int l = 0;
+    NetworkBroadcast networkBroadcast;
     ImageView imageView, back;
     CircularProgressBar circularProgressBar;
 
@@ -326,12 +329,18 @@ public class MyWishlist extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         firebaseRecyclerAdapter.startListening();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast=new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         firebaseRecyclerAdapter.stopListening();
+        this.unregisterReceiver(networkBroadcast);
     }
 
     @Override

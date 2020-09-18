@@ -10,7 +10,9 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Paint;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -60,6 +62,7 @@ public class MyCart extends AppCompatActivity {
     TextView total, continuetpay, totaltxt, buynow;
     double t = 0;
     int l;
+    NetworkBroadcast networkBroadcast;
     FirebaseRecyclerAdapter<itemdetails, CartViewHolder> firebaseRecyclerAdapter;
     ArrayList<String> ids, quans;
 
@@ -468,12 +471,18 @@ public class MyCart extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         firebaseRecyclerAdapter.startListening();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast=new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         firebaseRecyclerAdapter.stopListening();
+        this.unregisterReceiver(networkBroadcast);
     }
 
 

@@ -5,14 +5,19 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.itshop.NetworkBroadcast;
 import com.example.itshop.Notifications.SendNoti;
 import com.example.itshop.OrderDetails;
 import com.example.itshop.R;
@@ -35,6 +40,9 @@ public class Help extends AppCompatActivity {
     TextView button;
     EditText subject,desc;
     ProgressBar progressBar;
+    ImageView back;
+    NetworkBroadcast networkBroadcast;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +52,15 @@ public class Help extends AppCompatActivity {
         subject=findViewById(R.id.subject);
         desc=findViewById(R.id.body);
         progressBar=findViewById(R.id.progressbar);
+        back=findViewById(R.id.back);
+
+
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed();
+            }
+        });
 
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -117,5 +134,21 @@ public class Help extends AppCompatActivity {
         finish();
         customType(Help.this,"fadein-to-fadeout");
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        networkBroadcast=new NetworkBroadcast();
+        this.registerReceiver(networkBroadcast, filter);
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        this.unregisterReceiver(networkBroadcast);
     }
 }
