@@ -34,33 +34,11 @@
         app:itemIconTint="@color/draweritem"
         app:itemTextColor="@color/draweritem"
         app:itemIconPadding="15dp"
+        android:scrollbars="none"
         app:itemIconSize="25dp"
         app:itemBackground="@android:color/transparent"
         android:theme="@style/NavigationViewStyle"
         app:menu="@menu/activity_main_drawer" >
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:orientation="vertical"
-            android:layout_marginBottom="20dp"
-            android:padding="16dp">
-
-            <TextView
-                android:id="@+id/logout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="left|center_vertical"
-                android:drawablePadding="10dp"
-                android:layout_marginLeft="10dp"
-                android:textColor="@color/white"
-                android:foreground="?attr/selectableItemBackground"
-                android:drawableTint="@color/white"
-                android:textSize="18sp"
-                android:drawableLeft="@drawable/logout"
-                android:text="Log out" />
-        </LinearLayout>
 
     </com.google.android.material.navigation.NavigationView>
 

@@ -19,6 +19,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -90,7 +91,7 @@ public class ItemDetail extends AppCompatActivity {
     NetworkBroadcast networkBroadcast;
     TextView specifications, stock;
     NestedScrollView nestedScrollView;
-    ImageView back;
+    ImageView back,shareitem;
     Double rat;
     CircularProgressBar circularProgressBar;
     TextView name, rating, ratingsnum, price, spectext, rattext, discount, discountpercent, rating2, ratingnum2, category;
@@ -102,6 +103,7 @@ public class ItemDetail extends AppCompatActivity {
     TextView itemsincart, seeall;
     ArrayList<itemdetails> similar;
     ArrayList<String> ids;
+    Uri uri;
     FirebaseRecyclerAdapter<itemreview, ReviewViewHolder> firebaseRecyclerAdapter;
 
 
@@ -110,6 +112,13 @@ public class ItemDetail extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_item_detail);
         itemid = getIntent().getStringExtra("itemid");
+
+        uri=getIntent().getData();
+        if(uri!=null)
+        {
+            List<String> params=uri.getPathSegments();
+            itemid=params.get(params.size()-1);
+        }
 
         sliderView = findViewById(R.id.imageSlider);
         inforecyclerview = findViewById(R.id.inforecyclerview);
@@ -143,6 +152,10 @@ public class ItemDetail extends AppCompatActivity {
         similar = new ArrayList<>();
         category = findViewById(R.id.category);
         ids = new ArrayList<>();
+        shareitem=findViewById(R.id.shareitem);
+
+
+
 
         FirebaseDatabase.getInstance().getReference().child("Reviews").child(itemid).addValueEventListener(new ValueEventListener() {
             @Override
@@ -451,6 +464,9 @@ public class ItemDetail extends AppCompatActivity {
                                     }
                                 });
                             }
+                            else {
+
+                            }
                         }
 
                         @Override
@@ -554,6 +570,20 @@ public class ItemDetail extends AppCompatActivity {
                     specifications.setText(snapshot.child("specifications").getValue(String.class));
                     name.setText(snapshot.child("name").getValue(String.class));
                     category.setText(snapshot.child("category").getValue(String.class));
+
+                    shareitem.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                            shareIntent.setType("text/plain");
+                            String shareMessage= snapshot.child("name").getValue(String.class);
+                            //String shareMessage= "\nLet me recommend you this application\n\n";
+                            shareMessage = shareMessage+"\n"+ "https://www.mokshinnovativesolutions.com/" + itemid;
+                            shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage);
+                            startActivity(Intent.createChooser(shareIntent, "Share using"));
+
+                        }
+                    });
 
                     if (snapshot.child("rating").getValue(String.class) != null && !snapshot.child("rating").getValue(String.class).equals("")) {
                         rating.setText(snapshot.child("rating").getValue(String.class));
@@ -766,7 +796,7 @@ public class ItemDetail extends AppCompatActivity {
                     };
                     if (snapshot.child("replacement").exists()) {
                         if (!snapshot.child("replacement").getValue(String.class).equals("0")) {
-                            iteminfo.add(new itemdetails(snapshot.child("replacement").getValue(String.class) + " replacement", R.drawable.replace));
+                            iteminfo.add(new itemdetails(snapshot.child("replacement").getValue(String.class) + "days replacement", R.drawable.replace));
                         } else {
                             iteminfo.add(new itemdetails("No Replacement", R.drawable.replace));
                         }
@@ -774,7 +804,7 @@ public class ItemDetail extends AppCompatActivity {
 
                     if (snapshot.child("returnable").exists()) {
                         if (!snapshot.child("returnable").getValue(String.class).equals("0")) {
-                            iteminfo.add(new itemdetails(snapshot.child("returnable").getValue(String.class) + " return", R.drawable.returnable));
+                            iteminfo.add(new itemdetails(snapshot.child("returnable").getValue(String.class) + "days return", R.drawable.returnable));
                         } else {
                             iteminfo.add(new itemdetails("Non returnable", R.drawable.returnable));
                         }
@@ -914,8 +944,12 @@ public class ItemDetail extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        customType(ItemDetail.this, "right-to-left");
 
+        if(uri!=null)
+        {
+           startActivity(new Intent(ItemDetail.this,Home.class));
+        }
+            customType(ItemDetail.this, "right-to-left");
     }
 
     private class ReviewViewHolder extends RecyclerView.ViewHolder {

@@ -22,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.itshop.Fragments.Policies;
 import com.example.itshop.Notifications.SendNoti;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -58,7 +59,7 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
 
     ArrayList<String> ids, quans, singleitem, discounts, deliveries, prices;
     String itemid, name, address, phone, total, email = "", phone2 = "", paycost, state, orderid;
-    TextView addresss, price, deliverytotal, discount, totalprice, itemtext, backbutton, pay;
+    TextView addresss, price, deliverytotal, discount, totalprice, itemtext, backbutton, pay,viewpolicies;
     int pri;
     double dis, del = 0;
     ImageView back;
@@ -126,6 +127,7 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
         pay = findViewById(R.id.pay);
         backbutton = findViewById(R.id.backbutton);
         back = findViewById(R.id.back);
+        viewpolicies=findViewById(R.id.viewpolicies);
         circularProgressBar = findViewById(R.id.circularProgressBar);
 
         back.setOnClickListener(new View.OnClickListener() {
@@ -151,6 +153,15 @@ public class OrderDetails extends AppCompatActivity implements PaymentResultList
         addresss.setText(name + "\n" + address + "\n" + phone);
 
         ViewCompat.setNestedScrollingEnabled(recyclerView, false);
+
+
+        viewpolicies.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(OrderDetails.this, Policies.class));
+                customType(OrderDetails.this,"left-to-right");
+            }
+        });
 
         if (itemid == null) {
             FirebaseDatabase.getInstance().getReference().child("Items").addListenerForSingleValueEvent(new ValueEventListener() {

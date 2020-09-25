@@ -85,6 +85,7 @@ public class SplashScreen extends AppCompatActivity {
                                                 {
                                                     startActivity(new Intent(SplashScreen.this, Home.class));
                                                     customType(SplashScreen.this, "fadein-to-fadeout");
+                                                    finish();
                                                 }
                                                 else {
 
@@ -92,6 +93,7 @@ public class SplashScreen extends AppCompatActivity {
                                                     intent.putExtra("phone",FirebaseAuth.getInstance().getCurrentUser().getPhoneNumber());
                                                     startActivity(intent);
                                                     customType(SplashScreen.this, "fadein-to-fadeout");
+                                                    finish();
                                                 }
                                             }
 
@@ -104,6 +106,7 @@ public class SplashScreen extends AppCompatActivity {
                                     } else {
                                         startActivity(new Intent(SplashScreen.this, Home.class));
                                         customType(SplashScreen.this, "fadein-to-fadeout");
+                                        finish();
                                     }
                                     dialog.dismiss();
                                 }
@@ -114,6 +117,7 @@ public class SplashScreen extends AppCompatActivity {
                 else {
                         startActivity(new Intent(SplashScreen.this, Home.class));
                         customType(SplashScreen.this, "fadein-to-fadeout");
+                        finish();
 
                 }
 

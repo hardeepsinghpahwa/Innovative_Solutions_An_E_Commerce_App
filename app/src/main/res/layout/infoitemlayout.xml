@@ -15,7 +15,7 @@
         android:layout_marginTop="10dp"
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="10dp"
-        app:cardCornerRadius="50dp"
+        app:cardCornerRadius="30dp"
         app:cardBackgroundColor="@color/colorPrimary"
         app:layout_constraintBottom_toTopOf="@+id/infotext"
         app:layout_constraintEnd_toEndOf="parent"

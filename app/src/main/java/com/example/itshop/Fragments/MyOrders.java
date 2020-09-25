@@ -61,7 +61,6 @@ import static maes.tech.intentanim.CustomIntent.customType;
 public class MyOrders extends AppCompatActivity {
 
     RecyclerView recyclerView;
-    FirebaseRecyclerAdapter<orderdet, OrderViewHolder> firebaseRecyclerAdapter;
     CircularProgressBar circularProgressBar;
     ImageView back, noorders;
     ArrayList<String> ids, ids2;
@@ -111,16 +110,16 @@ public class MyOrders extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                items=new ArrayList<>();
+                items = new ArrayList<>();
 
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     if (dataSnapshot.child("userid").getValue(String.class).equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
-          
-                        items.add(new orderdet(dataSnapshot.child("status").getValue(String.class),String.valueOf(dataSnapshot.child("timestamp").getValue(Long.class)),dataSnapshot.getKey()));
+
+                        items.add(new orderdet(dataSnapshot.child("status").getValue(String.class), String.valueOf(dataSnapshot.child("timestamp").getValue(Long.class)), dataSnapshot.getKey()));
                     }
                 }
 
-                Collections.sort(items,new CustomComparatot());
+                Collections.sort(items, new CustomComparatot());
                 LinearLayoutManager linearLayoutManager = new LinearLayoutManager(MyOrders.this);
                 recyclerView.setLayoutManager(linearLayoutManager);
                 recyclerView.setAdapter(new OrderAdapter(items));
@@ -153,8 +152,8 @@ public class MyOrders extends AppCompatActivity {
     class OrderAdapter extends RecyclerView.Adapter<OrderViewHolder> {
         ArrayList<orderdet> its;
 
-        public OrderAdapter( ArrayList<orderdet> its) {
-          
+        public OrderAdapter(ArrayList<orderdet> its) {
+
             this.its = its;
         }
 
@@ -169,11 +168,11 @@ public class MyOrders extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull final OrderViewHolder holder, final int position) {
 
-            if(position==0)
+          /*  if(position==0)
             {
                 recyclerView.scheduleLayoutAnimation();
             }
-
+*/
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -183,10 +182,10 @@ public class MyOrders extends AppCompatActivity {
                 }
             });
 
-            if (position == 0) {
+            /*if (position == 0) {
                 recyclerView.scheduleLayoutAnimation();
 
-            }
+            }*/
 
             Log.i("id", String.valueOf(its.size()));
 
@@ -422,11 +421,10 @@ public class MyOrders extends AppCompatActivity {
         //    firebaseRecyclerAdapter.startListening();
         IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-        networkBroadcast=new NetworkBroadcast();
+        networkBroadcast = new NetworkBroadcast();
         this.registerReceiver(networkBroadcast, filter);
 
     }
-
 
 
     @Override

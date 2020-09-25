@@ -26,12 +26,12 @@
 
 
             <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:fontFamily="@font/varela_round"
                 android:layout_gravity="center"
                 android:textSize="20sp"
-                android:src="@drawable/logowhite"
+                android:src="@mipmap/logosquare"
                 android:textStyle="bold"
                 android:textColor="@color/white"/>
 

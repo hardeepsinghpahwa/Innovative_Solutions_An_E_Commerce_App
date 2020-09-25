@@ -72,7 +72,7 @@ public class Home extends AppCompatActivity
     TextView name, email;
     ImageView propic;
     RelativeLayout cart;
-    TextView itemsincart, logout;
+    TextView itemsincart;
     CoordinatorLayout coordinatorLayout;
     TextView search;
     NetworkBroadcast networkBroadcast;
@@ -83,10 +83,9 @@ public class Home extends AppCompatActivity
         setContentView(R.layout.activity_home);
 
 
-        Toolbar toolbar =  findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
 
         itemsincart = findViewById(R.id.itemsincart);
-        logout = findViewById(R.id.logout);
         coordinatorLayout = findViewById(R.id.coo);
         search = findViewById(R.id.search);
 
@@ -208,35 +207,6 @@ public class Home extends AppCompatActivity
         });
 
 
-        logout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(Home.this);
-                builder.setTitle("Are you sure you want to log out");
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                }).setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        FirebaseAuth.getInstance().signOut();
-                        Intent intent = new Intent(Home.this, MainActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                        startActivity(intent);
-                    }
-                });
-
-                builder.show();
-            }
-        });
-
-
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.navcontent, new HomeFragment())
                 .commit();
@@ -261,7 +231,7 @@ public class Home extends AppCompatActivity
             }
         });
 
-        if(FirebaseAuth.getInstance().getCurrentUser()!=null) {
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Cart").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -315,7 +285,7 @@ public class Home extends AppCompatActivity
         final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        if(FirebaseAuth.getInstance().getCurrentUser()!=null) {
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Notifications").orderByChild("read").equalTo("0").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -345,7 +315,7 @@ public class Home extends AppCompatActivity
         propic = headerView.findViewById(R.id.headpropic);
         email = headerView.findViewById(R.id.heademail);
 
-        if(FirebaseAuth.getInstance().getCurrentUser()!=null) {
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -362,15 +332,14 @@ public class Home extends AppCompatActivity
 
                 }
             });
-        }
-        else {
+        } else {
             name.setText("Sign In");
             name.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Intent intent=new Intent(Home.this,MainActivity.class);
+                    Intent intent = new Intent(Home.this, MainActivity.class);
                     startActivity(intent);
-                    customType(Home.this,"fadein-to-fadeout");
+                    customType(Home.this, "fadein-to-fadeout");
                 }
             });
         }
@@ -484,7 +453,34 @@ public class Home extends AppCompatActivity
                 customType(Home.this, "fadein-to-fadeout");
                 break;
 
+            case R.id.logoutitem: {
 
+                AlertDialog.Builder builder = new AlertDialog.Builder(Home.this);
+                builder.setTitle("Are you sure you want to log out");
+                builder.setCancelable(false);
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+                        navigationView.getMenu().getItem(0).setChecked(true);
+                    }
+                }).setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        FirebaseAuth.getInstance().signOut();
+                        Intent intent = new Intent(Home.this, MainActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                        startActivity(intent);
+                    }
+                });
+
+                builder.show();
+            }
+            break;
         }
 
 

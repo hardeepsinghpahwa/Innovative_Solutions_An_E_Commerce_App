@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/roundedback"
+    android:paddingBottom="20dp"
     tools:context=".Fragments.HomeFragment">
 
     <com.mikhaellopez.circularprogressbar.CircularProgressBar
@@ -36,6 +37,67 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
+
+            <com.jama.carouselview.CarouselView
+                android:id="@+id/carousel4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layoutAnimation="@anim/layout_lefttoright"
+                app:enableSnapping="true"
+                android:layout_marginTop="10dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/under1ktext"
+                app:resource="@layout/image_carousel_item"
+                app:scaleOnScroll="false"
+                app:spacing="10" />
+
+            <TextView
+                android:id="@+id/under1ktext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="20dp"
+                android:text="Shop Under 1000"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/carousel2" />
+
+
+            <com.jama.carouselview.CarouselView
+                android:id="@+id/carousel3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:layoutAnimation="@anim/layout_lefttoright"
+                app:enableSnapping="true"
+                android:layout_marginTop="10dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/under5ktext"
+                app:resource="@layout/image_carousel_item"
+                app:scaleOnScroll="false"
+                app:spacing="10" />
+
+            <TextView
+                android:id="@+id/under5ktext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="20dp"
+                android:text="Shop Under 5000"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/carousel4" />
 
             <com.smarteist.autoimageslider.SliderView
                 android:id="@+id/homerecyclerview"
@@ -71,7 +133,7 @@
                 android:textStyle="bold"
                 android:visibility="gone"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/customcarousel2" />
+                app:layout_constraintTop_toBottomOf="@+id/customcarousel4" />
 
 
             <TextView
@@ -116,6 +178,34 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/customcarousel1" />
 
+            <TextView
+                android:id="@+id/customtext3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="20dp"
+                android:text="Custom 1"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/customcarousel2" />
+
+            <TextView
+                android:id="@+id/customtext4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="20dp"
+                android:text="Custom 2"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/customcarousel3" />
+
             <com.jama.carouselview.CarouselView
                 android:id="@+id/customcarousel2"
                 android:layout_width="match_parent"
@@ -147,6 +237,43 @@
 
             </com.jama.carouselview.CarouselView>
 
+            <com.jama.carouselview.CarouselView
+                android:id="@+id/customcarousel3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layoutAnimation="@anim/layout_lefttoright"
+                app:enableSnapping="true"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/customtext3"
+                app:resource="@layout/image_carousel_item"
+                app:scaleOnScroll="false"
+                app:spacing="10">
+
+            </com.jama.carouselview.CarouselView>
+
+            <com.jama.carouselview.CarouselView
+                android:id="@+id/customcarousel4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layoutAnimation="@anim/layout_lefttoright"
+                app:enableSnapping="true"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/customtext4"
+                app:resource="@layout/image_carousel_item"
+                app:scaleOnScroll="false"
+                app:spacing="10">
+
+            </com.jama.carouselview.CarouselView>
 
             <com.jama.carouselview.CarouselView
                 android:id="@+id/carousel2"

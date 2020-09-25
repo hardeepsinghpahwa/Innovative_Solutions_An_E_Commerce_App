@@ -46,6 +46,11 @@
             android:icon="@drawable/policy"
             android:title="Policies" />
 
+        <item
+            android:id="@+id/logoutitem"
+            android:icon="@drawable/logout"
+            android:title="Logout" />
+
     </group>
 
 

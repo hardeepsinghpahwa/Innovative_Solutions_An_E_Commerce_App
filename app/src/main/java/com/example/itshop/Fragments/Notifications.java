@@ -101,7 +101,7 @@ public class Notifications extends AppCompatActivity {
 
 
 
-        Query query = FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Notifications");
+        Query query = FirebaseDatabase.getInstance().getReference().child("Profiles").child(FirebaseAuth.getInstance().getCurrentUser().getUid()).child("Notifications").orderByChild("timestamp");
 
         FirebaseRecyclerOptions<notiitem> options = new FirebaseRecyclerOptions.Builder<notiitem>()
                 .setQuery(query, new SnapshotParser<notiitem>() {
@@ -155,7 +155,8 @@ public class Notifications extends AppCompatActivity {
             }
         };
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(Notifications.this));
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(Notifications.this,RecyclerView.VERTICAL,true));
         recyclerView.setAdapter(firebaseRecyclerAdapter);
 
     }
